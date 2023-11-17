@@ -12,7 +12,6 @@
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
 @inject Microsoft.AspNetCore.Identity.UI.Services.IEmailSender EmailSender
-
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
@@ -31,10 +30,16 @@
             <hr />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="name@example.com" />
                 <label for="email">Email</label>
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.UserName" class="form-control" autocomplete="usersname" aria-required="true" placeholder="exampleusername55" />
+                <label for="UserName">Username</label>
+                <ValidationMessage For="() => Input.UserName" class="text-danger" />
+            </div>
+
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                 <label for="password">Password</label>
@@ -49,11 +54,11 @@
         </EditForm>
     </div>
     <div class="col-md-6 col-md-offset-2">
-        <section>
+       @*  <section>
             <h3>Use another service to register.</h3>
             <hr />
             <ExternalLoginPicker />
-        </section>
+        </section> *@
     </div>
 </div>
 
@@ -72,9 +77,14 @@
     {
         var user = CreateUser();
 
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        // Set the username
+        await UserStore.SetUserNameAsync(user, Input.UserName, CancellationToken.None);
+
+        // Set the email
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+        // Create the user with the password
         var result = await UserManager.CreateAsync(user, Input.Password);
 
         if (!result.Succeeded)
@@ -147,5 +157,10 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 3)]
+        [Display(Name = "Username")]
+        public string UserName { get; set; } = "";
     }
 }

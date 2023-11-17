@@ -8,7 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Components\Account\Pages\Manage\Index.razor.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Account\Pages\Manage\Index.razor.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AIArticleSiteTemplateProject.Client\AIArticleSiteTemplateProject.Client.csproj" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />

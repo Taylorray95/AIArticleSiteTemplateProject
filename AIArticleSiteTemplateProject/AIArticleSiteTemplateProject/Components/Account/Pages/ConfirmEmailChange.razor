@@ -52,15 +52,15 @@
             message = "Error changing email.";
             return;
         }
-
+        //below code has been commented out because we have added a username field and do not want a email change to result in a username change 
         // In our UI email and user name are one and the same, so when we update the email
         // we need to update the user name.
-        var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
-        if (!setUserNameResult.Succeeded)
-        {
-            message = "Error changing user name.";
-            return;
-        }
+        // var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
+        // if (!setUserNameResult.Succeeded)
+        // {
+        //     message = "Error changing user name.";
+        //     return;
+        // }
 
         await SignInManager.RefreshSignInAsync(user);
         message = "Thank you for confirming your email change.";

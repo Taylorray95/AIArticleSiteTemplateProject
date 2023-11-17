@@ -1,0 +1,160 @@
+﻿@using AIArticleSiteTemplateProject.Objects
+@inject Services.PostService PostService
+
+@if (trendingPosts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="categories-container">
+
+        @if (categories != null)
+        {
+            <div class="category-list">
+                @foreach (var category in categories)
+                {
+                    <div class="category">
+                        <a href="/List/@category.CategoryId">@("#" + category.CategoryHashTag)</a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<div class="filter-container">
+    <h3>Trending Articles</h3>
+    <div>
+        <label>Show: </label>
+        <select @onchange="OnSortChangeTrendingAmount" class="sort-dropdown">
+            <option selected="@TrendingPostSelectionNumberAmount" value="6">6</option>
+            <option value="9">9</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+        </select>
+        <label>From last: </label>
+        <select @onchange="OnSortChangeTrendingDays" class="sort-dropdown">
+            <option selected="@TrendingPostSelectionDayAmount" value="1">Last 24 Hours</option>
+            <option value="7">Week</option>
+            <option value="31">Month</option>
+            <option value="45">45 Days</option>
+            <option value="91">Three Months</option>
+        </select>
+    </div>
+</div>
+
+
+@if (trendingPosts != null)
+{
+    <div class="news-grid">
+        @foreach (var post in trendingPosts)
+        {
+            <div class="news-card">
+                <a href="/article/@post.PostId/@post.PostShortTitle">
+                    <img src="@post.PathToHeaderImage" alt="@post.PostTitle">
+                </a>
+                <div class="news-card-body">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <h5>@post.PostTitle</h5>
+                    </a>
+                    <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="filter-container">
+    <h3>Recent Posts</h3>
+    <div>
+        <label>Show: </label>
+        <select @onchange="OnSortChangeRecent" class="sort-dropdown">
+            <option selected="@RecentPostSelectingNumberAmount" value="6">6</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+        </select>
+    </div>
+</div>
+
+@if (recentPosts != null)
+{
+    <div class="news-grid">
+
+        @foreach (var post in recentPosts)
+        {
+            <div class="news-card">
+                <a href="/article/@post.PostId/@post.PostShortTitle">
+                    <img src="@post.PathToHeaderImage" alt="@post.PostTitle">
+                </a>
+                <div class="news-card-body">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <h5>@post.PostTitle</h5>
+                    </a>
+                    <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@*<div class="categories-container">
+    <h3>Categories</h3>
+    @if (categories != null)
+    {
+        foreach (var category in categories)
+        {
+            <div class="category">
+                <a href="/List/@category.CategoryId">@("#" + category.CategoryHashTag)</a>
+            </div>
+        }
+    }
+</div>*@
+
+@code {
+    private List<Post>? recentPosts;
+    private List<Post>? trendingPosts;
+
+    public string? TrendingPostSelectionDayAmount;
+    public string? TrendingPostSelectionNumberAmount;
+    public string? RecentPostSelectingNumberAmount;
+
+    private List<Category>? categories;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        TrendingPostSelectionDayAmount = "1";
+        TrendingPostSelectionNumberAmount = "6";
+        RecentPostSelectingNumberAmount = "6";
+        recentPosts = await PostService.GetRecentPosts(Convert.ToInt32(RecentPostSelectingNumberAmount));
+        trendingPosts = await PostService.GetTrendingPosts(Convert.ToInt32(TrendingPostSelectionNumberAmount), Convert.ToInt32(TrendingPostSelectionDayAmount));
+        categories = await PostService.GetCategories();
+
+    }
+    private async Task OnSortChangeTrendingDays(ChangeEventArgs e)
+    {
+        TrendingPostSelectionDayAmount = e!.Value!.ToString()!;
+        trendingPosts = await PostService.GetTrendingPosts(Convert.ToInt32(TrendingPostSelectionNumberAmount), Convert.ToInt32(TrendingPostSelectionDayAmount));
+
+        StateHasChanged();
+    }
+
+    private async Task OnSortChangeTrendingAmount(ChangeEventArgs e) // Added
+    {
+        TrendingPostSelectionNumberAmount = e!.Value!.ToString()!;
+        trendingPosts = await PostService.GetTrendingPosts(Convert.ToInt32(TrendingPostSelectionNumberAmount), Convert.ToInt32(TrendingPostSelectionDayAmount));
+
+        StateHasChanged();
+    }
+
+    private async Task OnSortChangeRecent(ChangeEventArgs e)
+    {
+        RecentPostSelectingNumberAmount = e!.Value!.ToString()!;
+        recentPosts = await PostService.GetRecentPosts(Convert.ToInt32(RecentPostSelectingNumberAmount));
+
+        StateHasChanged();
+    }
+
+
+}

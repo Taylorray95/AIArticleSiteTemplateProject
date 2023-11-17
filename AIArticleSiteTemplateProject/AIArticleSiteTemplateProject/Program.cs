@@ -45,10 +45,12 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<BlobServiceClientWrapper>();
 
-//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, EmailSender<ApplicationUser>>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>();
+
 
 
 var app = builder.Build();

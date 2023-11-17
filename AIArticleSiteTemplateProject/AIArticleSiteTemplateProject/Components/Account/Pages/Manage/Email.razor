@@ -8,7 +8,7 @@
 @using AIArticleSiteTemplateProject.Data
 
 @inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject Microsoft.AspNetCore.Identity.UI.Services.IEmailSender EmailSender
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
 
@@ -91,6 +91,9 @@
 
         //await EmailSender.SendConfirmationLinkAsync(user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
+        await EmailSender.SendEmailAsync(Input.NewEmail, "Confirm your email",
+                       $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
         message = "Confirmation link to change email sent. Please check your email.";
     }
 
@@ -108,7 +111,8 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
 
-        await EmailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(callbackUrl));
+        await EmailSender.SendEmailAsync(email, "Confirm your email",
+                       $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
         message = "Verification email sent. Please check your email.";
     }

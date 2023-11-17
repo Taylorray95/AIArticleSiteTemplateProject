@@ -3,11 +3,16 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Services
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
+@inject BlobServiceClientWrapper BlobServiceClientWrapper
+
 
 <PageTitle>Profile</PageTitle>
 
@@ -31,12 +36,28 @@
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </EditForm>
     </div>
+
+    <br />
+    <br />
+     <h2>Profile Photo</h2>
+
+    <div class="col-md-6">
+        <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
+        <InputFile OnChange="OnInputFileChange" class="form-control" />
+
+        <button @onclick="SavePhoto" class="w-100 btn btn-lg btn-primary">Save New Photo</button>
+        <button @onclick="ResetPhoto" class="w-100 btn btn-lg btn-danger">Delete Photo</button>
+    </div>
 </div>
+
+
 
 @code {
     private ApplicationUser user = default!;
     private string? username;
     private string? phoneNumber;
+    private string? imageUrl;
+    private IBrowserFile? selectedFile;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -47,12 +68,12 @@
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        imageUrl = user.ProfilePhoto ?? "https://newshog.blob.core.windows.net/profile-photos/default.png";
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
 
         Input.PhoneNumber ??= phoneNumber;
     }
-
     private async Task OnValidSubmitAsync()
     {
         if (Input.PhoneNumber != phoneNumber)
@@ -73,5 +94,53 @@
         [Phone]
         [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            selectedFile = file;
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var buffer = new byte[file.Size];
+                await stream.ReadAsync(buffer, 0, (int)file.Size);
+                imageUrl = await JSRuntime.InvokeAsync<string>("readFileAsDataURL", new object[] { buffer });
+                StateHasChanged();
+
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception (e.g., log it or show an error message)
+            }
+        }
+
+    }
+
+    private async Task SavePhoto()
+    {
+        if (selectedFile != null)
+        {
+            var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
+
+            var blobClient = blobContainer.GetBlobClient(Guid.NewGuid().ToString() + Path.GetExtension(selectedFile.Name));
+
+            await using var stream = selectedFile.OpenReadStream();
+            await blobClient.UploadAsync(stream, overwrite: true);
+
+            user.ProfilePhoto = blobClient.Uri.AbsoluteUri;
+            await UserManager.UpdateAsync(user);
+            imageUrl = user.ProfilePhoto;
+        }
+    }
+
+    private async Task ResetPhoto()
+    {
+        user.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
+        await UserManager.UpdateAsync(user);
+        imageUrl = user.ProfilePhoto;
     }
 }
