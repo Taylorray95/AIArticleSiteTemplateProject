@@ -1,10 +1,11 @@
 ﻿@page "/Account/Manage"
-
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)] 
+@inject AuthenticationStateProvider AuthenticationStateProvider 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Services
-
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
@@ -12,12 +13,16 @@
 @inject IConfiguration Configuration
 @inject IJSRuntime JSRuntime
 @inject BlobServiceClientWrapper BlobServiceClientWrapper
-
+@inject NavigationManager NavigationManager
 
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
-<StatusMessage />
+
+@if (showError == true)
+{
+    <div class="text-danger">@statusMessage</div>
+}
 
 <div class="row">
     <div class="col-md-6">
@@ -31,7 +36,7 @@
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
                 <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+                @* <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" /> *@
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </EditForm>
@@ -39,39 +44,50 @@
 
     <br />
     <br />
-     <h2>Profile Photo</h2>
-
+    <h2>Profile Photo</h2>
+    <br />
     <div class="col-md-6">
+        <div class="form-floating mb-3">
         <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
         <InputFile OnChange="OnInputFileChange" class="form-control" />
 
+        </div>
+
+        <div class="form-floating mb-3">
+
         <button @onclick="SavePhoto" class="w-100 btn btn-lg btn-primary">Save New Photo</button>
         <button @onclick="ResetPhoto" class="w-100 btn btn-lg btn-danger">Delete Photo</button>
+
+        </div>
     </div>
 </div>
-
+@test
 
 
 @code {
+    private string statusMessage = "";
+    private bool showError = false;
     private ApplicationUser user = default!;
+
+    private string? test;
     private string? username;
     private string? phoneNumber;
     private string? imageUrl;
     private IBrowserFile? selectedFile;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        imageUrl = user.ProfilePhoto ?? "https://newshog.blob.core.windows.net/profile-photos/default.png";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var identityUser = authState.User;
+        user = await UserManager.GetUserAsync(identityUser);
+        imageUrl = user!.ProfilePhoto ?? "https://newshog.blob.core.windows.net/profile-photos/default.png";
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
-
         Input.PhoneNumber ??= phoneNumber;
     }
     private async Task OnValidSubmitAsync()
@@ -81,47 +97,57 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                statusMessage = "Error: Failed to set phone number.";
+                showError = true;
+                return; 
             }
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        statusMessage = "Your profile has been updated";
+        showError = false;
+        StateHasChanged();
     }
 
     private sealed class InputModel
     {
         [Phone]
         [Display(Name = "Phone number")]
+        // [MinLength(10, ErrorMessage = "Phone number must be at least 10 digits.")]
+        [RegularExpression(@"^\d{10,}$", ErrorMessage = "Phone number must be at least 10 digits.")]
         public string? PhoneNumber { get; set; }
     }
+
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
         var file = e.File;
         if (file != null)
         {
-            selectedFile = file;
+            selectedFile = file; 
 
             try
             {
                 using var stream = file.OpenReadStream();
-                var buffer = new byte[file.Size];
-                await stream.ReadAsync(buffer, 0, (int)file.Size);
-                imageUrl = await JSRuntime.InvokeAsync<string>("readFileAsDataURL", new object[] { buffer });
-                StateHasChanged();
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                var buffer = memoryStream.ToArray();
 
+                var base64Image = $"data:image/jpeg;base64,{Convert.ToBase64String(buffer)}";
+                imageUrl = base64Image;
+                StateHasChanged();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Handle the exception (e.g., log it or show an error message)
+
             }
         }
-
     }
+
 
     private async Task SavePhoto()
     {
+        StateHasChanged();
         if (selectedFile != null)
         {
             var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
