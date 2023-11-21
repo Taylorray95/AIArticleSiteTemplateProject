@@ -39,6 +39,12 @@ namespace AIArticleSiteTemplateProject.Data
             builder.Entity<IdentityUserLogin<string>>().ToTable(tablePrefix + "UserLogins");
             builder.Entity<IdentityRoleClaim<string>>().ToTable(tablePrefix + "RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable(tablePrefix + "UserTokens");
+
+            // Customizing table names for application-specific entities
+            builder.Entity<PostStatus>().ToTable(tablePrefix + "PostStatuses");
+            builder.Entity<Category>().ToTable(tablePrefix + "Categories");
+            builder.Entity<Post>().ToTable(tablePrefix + "Posts");
+            builder.Entity<Comment>().ToTable(tablePrefix + "Comments");
         }
 
     }

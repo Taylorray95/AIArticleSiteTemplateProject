@@ -1,0 +1,302 @@
+/* News Grid Styling */
+/**/
+/*.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 1rem;
+    margin-top: 2rem;
+    justify-self:center;
+    grid-auto-flow: dense;
+}*/
+/*.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 1rem;
+    margin-top: 2rem;
+    grid-auto-flow: dense;
+}*/
+.news-grid {
+    display: grid;
+    grid-gap: 1rem;
+    margin-top: 2rem;
+    justify-self: center;
+    grid-auto-flow: dense;
+}
+
+@media screen and (max-width: 600px) {
+    /* On small screens (smartphones), display 1 item per row */
+    .news-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+@media screen and (min-width: 601px) and (max-width: 900px) {
+    /* On medium screens, display 2 items per row */
+    .news-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media screen and (min-width: 901px) {
+    /* On large screens, display 4 items per row */
+    .news-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.last-row {
+    justify-self: center;
+}
+
+.news-grid::after {
+    content: "";
+    grid-column: 1 / -1;
+}
+
+
+.news-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+    .news-card img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+    }
+
+.news-card-body {
+    padding: 1rem;
+}
+
+    .news-card-body h5 {
+        margin-bottom: 0.5rem;
+    }
+
+    .news-card-body p {
+        color: #666;
+        line-height: 1.6;
+    }
+
+.reply-box {
+    margin-left: 30px;
+    background-color: #F0F0F0;
+    border: 1px solid #DDD;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.button-x {
+    background-color: #FF0000;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+
+.comments {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1rem;
+    background-color: #F9F9F9;
+}
+
+.comment {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #FFFFFF;
+}
+
+.reply-box {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #FFFFFF;
+    margin-left: 30px;
+}
+
+.article {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+    max-width: 100%;
+}
+
+.article-img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+.article-body {
+    margin: 0 auto;
+    max-width: 100%;
+    padding: 1rem;
+    border-radius: 5px;
+    background-color: #F9F9F9;
+}
+
+.date {
+    font-size: 0.8em; /* You can adjust the size as you wish. */
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+h2, h3, h5 {
+    color: #333;
+}
+
+h3 {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+button {
+    font-size: 0.9em;
+}
+
+p {
+    line-height: 1.6;
+}
+
+textarea {
+    width: 100%;
+    min-height: 100px; /* You can adjust this value as per your preference. */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical; /* Allows the user to resize the textarea vertically. */
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    button + button {
+        margin-left: 10px;
+    }
+
+.profile-photo {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+}
+
+.username {
+    margin-left: 10px;
+}
+
+.comment-body {
+    margin-top: 10px;
+}
+
+.comment-date {
+    color: #666;
+}
+
+.replies {
+    margin-top: 10px;
+    margin-left: 30px;
+}
+
+.reply + .reply {
+    margin-top: 10px;
+}
+
+h3 {
+    display: inline-block;
+}
+
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.sort-dropdown {
+    display: inline-block;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background: #f0f0f0;
+    margin-top: 10px;
+}
+
+@media (min-width: 700px) {
+    .filter-container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sort-dropdown {
+        margin-top: 0;
+    }
+}
+
+.categories-container {
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: #f2f2f2;
+    padding: 10px;
+}
+
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.category {
+    background-color: #d9d9d9;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+    .category a {
+        text-decoration: none;
+        color: black;
+    }
