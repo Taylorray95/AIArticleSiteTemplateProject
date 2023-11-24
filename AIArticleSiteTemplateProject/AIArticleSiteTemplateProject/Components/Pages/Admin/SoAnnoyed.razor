@@ -14,13 +14,14 @@
 @code {
     private async Task InsertSampleData()
     {
-        var newStatus = new PostStatus
+        var newCategory = new Category
             {
-                StatusName= "Actice",
-                StatusDesc = "Post is active!"
+                CategoryDesc = "Sample Category Description 222",
+                CategoryHashTag = "#SampleCategory222"
+                // SysDate is set to DateTime.Now by default
             };
 
-        DbContext.PostStatuses.Add(newStatus);
+        DbContext.Categories.Add(newCategory);
         await DbContext.SaveChangesAsync();
     }
 }
