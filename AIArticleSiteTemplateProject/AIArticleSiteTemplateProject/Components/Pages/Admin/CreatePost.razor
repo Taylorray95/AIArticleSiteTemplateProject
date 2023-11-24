@@ -7,7 +7,11 @@
 @inject ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 
-
+@if (!string.IsNullOrEmpty(validationMessage))
+{
+    <div class="alert alert-info">@validationMessage</div>
+}
+<br />
 
 <EditForm Model="@post" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -124,9 +128,13 @@
                 DbContext.ArticleParsed.Add(article);
             }
             await DbContext.SaveChangesAsync();
+
+            ClearForm();
+            validationMessage = "Post submitted successfully";
         }
         catch (DbUpdateException ex)
         {
+            validationMessage = "An error occurred while updating the database.";
             Console.WriteLine("An error occurred while updating the database: " + ex.Message);
             if (ex.InnerException != null)
             {
@@ -135,8 +143,15 @@
         }
         catch (Exception ex)
         {
+            validationMessage = "An error occurred during submission.";
             Console.WriteLine("An error occurred: " + ex.ToString());
         }
+    }
+
+    private void ClearForm()
+    {
+        post = new Post();
+        articlesParsed.Clear();
     }
 
 }
