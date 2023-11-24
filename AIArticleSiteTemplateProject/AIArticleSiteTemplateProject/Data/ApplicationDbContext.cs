@@ -15,6 +15,7 @@ namespace AIArticleSiteTemplateProject.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<ArticleParsed> ArticleParsed { get; set; }
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
@@ -45,6 +46,7 @@ namespace AIArticleSiteTemplateProject.Data
             builder.Entity<Category>().ToTable(tablePrefix + "Categories");
             builder.Entity<Post>().ToTable(tablePrefix + "Posts");
             builder.Entity<Comment>().ToTable(tablePrefix + "Comments");
+            builder.Entity<ArticleParsed>().ToTable(tablePrefix + "ArticleParsed");
         }
 
     }

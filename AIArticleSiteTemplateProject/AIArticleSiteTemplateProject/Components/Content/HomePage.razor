@@ -1,5 +1,5 @@
-﻿@using AIArticleSiteTemplateProject.Objects
-@inject Services.PostService PostService
+﻿@* @* @using AIArticleSiteTemplateProject.Objects
+@* @inject Services.PostService PostService 
 
 @if (trendingPosts == null)
 {
@@ -98,7 +98,7 @@ else
     </div>
 }
 
-@*<div class="categories-container">
+<div class="categories-container">
     <h3>Categories</h3>
     @if (categories != null)
     {
@@ -109,7 +109,7 @@ else
             </div>
         }
     }
-</div>*@
+</div>
 
 @code {
     private List<Post>? recentPosts;
@@ -158,3 +158,4 @@ else
 
 
 }
+*@

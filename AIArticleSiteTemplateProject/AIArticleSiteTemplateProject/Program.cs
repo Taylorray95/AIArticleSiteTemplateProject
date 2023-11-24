@@ -52,7 +52,6 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>();
 
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

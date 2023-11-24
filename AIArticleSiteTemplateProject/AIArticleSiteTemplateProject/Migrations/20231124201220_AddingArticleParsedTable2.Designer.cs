@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AIArticleSiteTemplateProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231121213847_CreateNewTables")]
-    partial class CreateNewTables
+    [Migration("20231124201220_AddingArticleParsedTable2")]
+    partial class AddingArticleParsedTable2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -93,6 +93,33 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.ToTable("DevBuild_Users", (string)null);
                 });
 
+            modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.ArticleParsed", b =>
+                {
+                    b.Property<int>("ArticleParsedId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ArticleParsedId"));
+
+                    b.Property<DateTime>("ParsedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ArticleParsedId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("DevBuild_ArticleParsed", (string)null);
+                });
+
             modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.Category", b =>
                 {
                     b.Property<int>("CategoryId")
@@ -161,35 +188,28 @@ namespace AIArticleSiteTemplateProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PostId"));
 
-                    b.Property<string>("Article_Parsed_Url")
-                        .IsRequired()
+                    b.Property<string>("BodyImage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PageViews")
+                    b.Property<string>("HeaderImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Image3")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Image4")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PageViews")
                         .HasColumnType("int");
-
-                    b.Property<string>("PathToBodyImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathToHeaderImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathToImage3")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathToImage4")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PostBody")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PostCategoryId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("PostLastUpdated")
                         .HasColumnType("datetime2");
@@ -206,12 +226,14 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalComments")
+                    b.Property<int?>("TotalComments")
                         .HasColumnType("int");
 
                     b.HasKey("PostId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("DevBuild_Posts", (string)null);
                 });
@@ -368,6 +390,17 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.ToTable("DevBuild_UserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.ArticleParsed", b =>
+                {
+                    b.HasOne("AIArticleSiteTemplateProject.Objects.Post", "Post")
+                        .WithMany()
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+                });
+
             modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.Comment", b =>
                 {
                     b.HasOne("AIArticleSiteTemplateProject.Objects.Comment", "ParentComment")
@@ -389,9 +422,19 @@ namespace AIArticleSiteTemplateProject.Migrations
                 {
                     b.HasOne("AIArticleSiteTemplateProject.Objects.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AIArticleSiteTemplateProject.Objects.PostStatus", "PostStatus")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("PostStatus");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

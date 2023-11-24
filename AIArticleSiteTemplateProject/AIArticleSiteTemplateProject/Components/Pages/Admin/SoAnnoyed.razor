@@ -1,0 +1,26 @@
+﻿@page "/admin/soannoyed"
+@inject ApplicationDbContext DbContext
+
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+<h3>Insert Category Data</h3>
+
+<button class="btn btn-primary" @onclick="InsertSampleData">Insert Sample Data</button>
+
+@code {
+    private async Task InsertSampleData()
+    {
+        var newStatus = new PostStatus
+            {
+                StatusName= "Actice",
+                StatusDesc = "Post is active!"
+            };
+
+        DbContext.PostStatuses.Add(newStatus);
+        await DbContext.SaveChangesAsync();
+    }
+}

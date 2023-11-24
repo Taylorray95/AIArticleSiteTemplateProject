@@ -4,6 +4,7 @@ using AIArticleSiteTemplateProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AIArticleSiteTemplateProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231123035204_Initial-Create")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,10 +165,10 @@ namespace AIArticleSiteTemplateProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PageViews")
+                    b.Property<int?>("PageViews")
                         .HasColumnType("int");
 
                     b.Property<string>("PathToBodyImage")
@@ -185,9 +188,6 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.Property<string>("PostBody")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PostCategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("PostLastUpdated")
                         .HasColumnType("datetime2");
 
@@ -200,10 +200,10 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.Property<string>("PostTitle")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalComments")
+                    b.Property<int?>("TotalComments")
                         .HasColumnType("int");
 
                     b.HasKey("PostId");
@@ -386,7 +386,9 @@ namespace AIArticleSiteTemplateProject.Migrations
                 {
                     b.HasOne("AIArticleSiteTemplateProject.Objects.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
                 });
