@@ -42,6 +42,7 @@
                     <td>
                         <button @onclick="() => ViewPost(post.PostId)">View</button>
                         <button @onclick="() => EditPost(post.PostId)">Edit</button>
+                        <button @onclick="() => DeletePost(post.PostId)">Delete</button>
                     </td>
                 </tr>
             }
@@ -56,7 +57,7 @@
 }
 else
 {
-    <p>No posts available.</p>
+    <div>Loading..</div>
 }
 
 @code {
@@ -120,5 +121,10 @@ else
     private void EditPost(int postId)
     {
         NavigationManager.NavigateTo($"/admin/edit/{postId}");
+    }
+
+    private void DeletePost(int postId)
+    {
+        
     }
 }
