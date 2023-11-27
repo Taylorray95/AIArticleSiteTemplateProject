@@ -1,4 +1,4 @@
-﻿@page "/admin/"
+﻿@page "/admin/posts"
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Objects
 @rendermode InteractiveServer
@@ -7,16 +7,22 @@
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
 
-@if (categories != null)
-{
-    @foreach (var category in categories)
-    {
-        <button @onclick="() => FilterByCategory(category.CategoryId)">@category.CategoryDesc</button>
-    }
-}
 
-@if (posts != null && posts.Any())
+
+@* @if (posts != null && posts.Any()) *@
+@if (!isLoading)
 {
+    <NavLink class="btn btn-link" href="/admin/posts/createpost">Create a Post</NavLink>
+
+    <br />
+    @if (categories != null)
+    {
+        @foreach (var category in categories)
+        {
+            <button @onclick="() => FilterByCategory(category.CategoryId)">@category.CategoryDesc</button>
+        }
+    }
+
     <table class="table">
         <thead>
             <tr>
@@ -42,7 +48,7 @@
                     <td>
                         <button @onclick="() => ViewPost(post.PostId)">View</button>
                         <button @onclick="() => EditPost(post.PostId)">Edit</button>
-                        <button @onclick="() => DeletePost(post.PostId)">Delete</button>
+
                     </td>
                 </tr>
             }
@@ -66,12 +72,20 @@ else
     private int _currentPage = 1;
     private const int PageSize = 50;
     private int _totalPages = 0;
+    private bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        categories = await DbContext.Categories.ToListAsync();
-        await LoadPosts();
+        if (firstRender)
+        {
+            isLoading = true;
+            categories = await DbContext.Categories.ToListAsync();
+            await LoadPosts();
+            isLoading = false;
+            StateHasChanged();
+        }
     }
+
 
     private async Task LoadPosts(int? categoryId = null)
     {

@@ -1,0 +1,67 @@
+﻿@page "/admin/categories"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+@if (!isLoading)
+{
+    <NavLink class="btn btn-link" href="/admin/categories/createcategory">Create a New Category</NavLink>
+
+    @if (categories != null)
+    {    
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var category in categories)
+                {
+                    <tr>
+                        <td>
+                            @category.CategoryId
+                        </td>
+                        <td>
+                            @category.CategoryHashTag
+                        </td>
+                        <t
+                    </tr>
+                }
+            </tbody>
+    </table>
+    }
+
+}
+
+@code{
+    private List<Category>? categories;
+    private bool isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            await LoadCategories();
+            isLoading = false;
+            StateHasChanged();
+
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        var query = DbContext.Categories.ToListAsync();
+    }
+
+
+
+
+
+
+}

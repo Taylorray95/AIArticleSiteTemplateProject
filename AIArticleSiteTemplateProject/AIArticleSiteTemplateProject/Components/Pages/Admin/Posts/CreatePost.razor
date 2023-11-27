@@ -1,4 +1,4 @@
-﻿@page "/admin/createpost"
+﻿@page "/admin/posts/createpost"
 
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Objects
@@ -7,6 +7,8 @@
 @inject ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 
+@if (!isLoading)
+{
 @if (!string.IsNullOrEmpty(validationMessage))
 {
     <div class="alert alert-info">@validationMessage</div>
@@ -93,20 +95,30 @@
 
 
     <button type="submit" class="btn btn-primary">Create Post</button>
-</EditForm>
+    </EditForm>
+}
+else
+{
+<div>Loading..</div>    
+}
 
 @code {
     private Post post = new Post();
     private List<Category> categories = new List<Category>();
     private List<PostStatus> postStatuses = new List<PostStatus>();
     private List<ArticleParsed> articlesParsed = new List<ArticleParsed>();
-
+    private bool isLoading = true;
     private string validationMessage = "";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        categories = await DbContext.Categories.ToListAsync();
-        postStatuses = await DbContext.PostStatuses.ToListAsync();
+        if (firstRender)
+        {
+            isLoading = true;
+            categories = await DbContext.Categories.ToListAsync();
+            postStatuses = await DbContext.PostStatuses.ToListAsync();
+            isLoading = false; 
+        }
     }
 
     private void AddArticleParsed()
