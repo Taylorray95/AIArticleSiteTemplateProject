@@ -16,7 +16,21 @@
     <table class="table">
         <thead>
             <tr>
-                <th></th>
+                <th>
+                    Category ID
+                </th>
+                <th>
+                    Category Name
+                </th>
+                <th>
+                    Category Description
+                </th>
+                <th>
+                    Category HashTag
+                </th>
+                <th>
+                    Actions
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -27,9 +41,18 @@
                             @category.CategoryId
                         </td>
                         <td>
+                            @category.CategoryName
+                        </td>
+                        <td>
+                            @category.CategoryDesc
+                        </td>
+                        <td>
                             @category.CategoryHashTag
                         </td>
-                        <t
+                        <td>
+                            <button @onclick="() => EditCategory(category.CategoryId)">Edit</button>
+                        </td>
+                        
                     </tr>
                 }
             </tbody>
@@ -56,10 +79,13 @@
 
     private async Task LoadCategories()
     {
-        var query = DbContext.Categories.ToListAsync();
+        categories = await DbContext.Categories.ToListAsync();
     }
 
-
+    private void EditCategory(int categoryId)
+    {
+        NavigationManager.NavigateTo($"/admin/categories/edit/{categoryId}");
+    }
 
 
 

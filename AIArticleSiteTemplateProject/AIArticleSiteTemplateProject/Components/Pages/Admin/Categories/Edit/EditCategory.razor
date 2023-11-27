@@ -1,0 +1,127 @@
+﻿@page "/admin/categories/{int:categoryId}"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+@using AIArticleSiteTemplateProject.Components.Reusable
+
+@if (!string.IsNullOrEmpty(validationMessage))
+{
+    <div class="alert alert-info">@validationMessage</div>
+}
+<br />
+
+
+<ConfirmationDialog @ref="confirmationDialog" ConfirmationChanged="OnConfirmationChanged" />
+
+@if (!isLoading)
+{
+
+    <EditForm Model="selectedCategory" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="categoryName">Category Name:</label>
+            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryName" />
+        </div>
+
+        <div class="form-group">
+            <label for="categoryName">Category Name:</label>
+            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryDesc" />
+        </div>
+
+        <div class="form-group">
+            <label for="categoryName">Category Name:</label>
+            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryHashTag" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Post</button>
+        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Post</button>
+    </EditForm>
+}
+else
+{
+    <div>Loading...</div>
+}
+@code{
+
+    [Parameter]
+    public int categoryId {get; set;}
+
+    private Category? selectedCategory;
+    private ConfirmationDialog? confirmationDialog;
+    private bool isLoading = true;
+    private string? validationMessage = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            selectedCategory = await DbContext.Categories.FindAsync(categoryId);
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (selectedCategory != null)
+        {
+            try
+            {
+                DbContext.Categories.Update(selectedCategory);
+                await DbContext.SaveChangesAsync();
+
+                validationMessage = "Successfully updated the article.";
+
+                StateHasChanged();
+
+                await Task.Delay(1000);
+
+                NavigationManager.NavigateTo("/admin/categories");
+            }
+            catch (Exception ex)
+            {
+                
+            }
+
+        }
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        confirmationDialog!.Show("Are you sure you want to delete this post?");
+    }
+
+    private async Task OnConfirmationChanged(bool confirmed)
+    {
+        if (confirmed)
+        {
+            await DeletePost();
+        }
+    }
+
+    private async Task DeletePost()
+    {
+        if (selectedCategory != null)
+        {
+            try
+            {
+                DbContext.Categories.Remove(selectedCategory);
+                await DbContext.SaveChangesAsync();
+                NavigationManager.NavigateTo("/admin/");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+    }
+
+}
+
+
