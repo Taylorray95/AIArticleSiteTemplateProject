@@ -30,13 +30,13 @@
         </div>
 
         <div class="form-group">
-            <label for="categoryName">Category Name:</label>
-            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryDesc" />
+            <label for="categoryDesc">Category Description:</label>
+            <InputText id="categoryDesc" class="form-control" @bind-Value="selectedCategory!.CategoryDesc" />
         </div>
 
         <div class="form-group">
-            <label for="categoryName">Category Name:</label>
-            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryHashTag" />
+            <label for="categoryHashTag">Category HashTag:</label>
+            <InputText id="categoryHashTag" class="form-control" @bind-Value="selectedCategory!.CategoryHashTag" />
         </div>
 
         <div class="form-group">
@@ -44,8 +44,8 @@
             <InputCheckbox id="categoryStatus" @bind-Value="isActiveFlag"></InputCheckbox>
         </div>
 
-        <button type="submit" class="btn btn-primary">Update Post</button>
-        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Post</button>
+        <button type="submit" class="btn btn-primary">Update Category</button>
+        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Category</button>
     </EditForm>
 }
 else

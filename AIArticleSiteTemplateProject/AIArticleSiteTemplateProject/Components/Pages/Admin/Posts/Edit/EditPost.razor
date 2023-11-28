@@ -49,7 +49,10 @@
                 {
                     @foreach (var category in categories)
                     {
-                        <option value="@category.CategoryId">@category.CategoryDesc</option>
+                        @if (category.isActiveFlag)
+                        { 
+                            <option value="@category.CategoryId">@category.CategoryName</option>
+                        }
                     }
                 }
                 

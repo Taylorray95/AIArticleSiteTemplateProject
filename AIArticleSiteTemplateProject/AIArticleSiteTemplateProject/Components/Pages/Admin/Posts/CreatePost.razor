@@ -42,7 +42,10 @@
             <option value="">Select a Category</option>
             @foreach (var category in categories)
             {
-                <option value="@category.CategoryId">@category.CategoryName</option>
+                    @if (category.isActiveFlag)
+                    {
+                        <option value="@category.CategoryId">@category.CategoryName</option>
+                    }
             }
         </InputSelect>
     </div>

@@ -5,6 +5,8 @@
 @inject ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
 
     @if ( post != null)
 {
@@ -64,6 +66,6 @@
 
     private void EditPost(int postId)
     {
-        NavigationManager.NavigateTo($"/admin/edit/{postId}");
+        NavigationManager.NavigateTo($"/admin/posts/edit/{postId}");
     }
 }
