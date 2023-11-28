@@ -147,42 +147,5 @@ async Task AssignSuperUserRoleAsync(UserManager<ApplicationUser> userManager)
     }
 }
 
-//async Task AssignSuperUserRoleAsync(UserManager<ApplicationUser> userManager)
-//{
-    
-//    var superUserEmail = "taylorleavelle@gmail.com";
-
-//    try
-//    {
-//        var user = await userManager.FindByEmailAsync(superUserEmail);
-//        if (user == null)
-//        {
-//            Console.WriteLine("User not found.");
-//            return;
-//        }
-
-//        if (!await userManager.IsInRoleAsync(user, "SuperAdmin"))
-//        {
-//            var result = await userManager.AddToRoleAsync(user, "SuperAdmin");
-//            if (result.Succeeded)
-//            {
-//                Console.WriteLine("User assigned to role successfully.");
-//            }
-//            else
-//            {
-//                Console.WriteLine("Error assigning role: " + string.Join(", ", result.Errors.Select(e => e.Description)));
-//            }
-//        }
-//        else
-//        {
-//            Console.WriteLine("User already has the role.");
-//        }
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine("Exception occurred: " + ex.Message);
-//    }
-//}
-
 
 app.Run();
