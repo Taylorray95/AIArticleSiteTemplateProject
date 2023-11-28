@@ -29,6 +29,9 @@
                     Category HashTag
                 </th>
                 <th>
+                    Active?
+                </th>
+                <th>
                     Actions
                 </th>
             </tr>
@@ -50,6 +53,9 @@
                             @category.CategoryHashTag
                         </td>
                         <td>
+                            @category.isActiveFlag
+                        </td>
+                        <td>
                             <button @onclick="() => EditCategory(category.CategoryId)">Edit</button>
                         </td>
                         
@@ -59,6 +65,10 @@
     </table>
     }
 
+}
+else
+{
+    <duv>Loading...</duv>
 }
 
 @code{

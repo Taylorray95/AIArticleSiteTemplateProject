@@ -1,4 +1,4 @@
-﻿@page "/admin/categories/{int:categoryId}"
+﻿@page "/admin/categories/edit/{categoryId:int}"
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Objects
 @rendermode InteractiveServer
@@ -39,6 +39,11 @@
             <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryHashTag" />
         </div>
 
+        <div class="form-group">
+            <label for="categoryStatus">Category Active/Inactive:</label>
+            <InputCheckbox id="categoryStatus" @bind-Value="isActiveFlag"></InputCheckbox>
+        </div>
+
         <button type="submit" class="btn btn-primary">Update Post</button>
         <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Post</button>
     </EditForm>
@@ -56,6 +61,7 @@ else
     private ConfirmationDialog? confirmationDialog;
     private bool isLoading = true;
     private string? validationMessage = "";
+    private bool isActiveFlag;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -63,7 +69,9 @@ else
         {
             isLoading = true;
             selectedCategory = await DbContext.Categories.FindAsync(categoryId);
+            isActiveFlag = selectedCategory!.isActiveFlag;
             isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -73,6 +81,7 @@ else
         {
             try
             {
+                selectedCategory.isActiveFlag = isActiveFlag;
                 DbContext.Categories.Update(selectedCategory);
                 await DbContext.SaveChangesAsync();
 
@@ -82,11 +91,11 @@ else
 
                 await Task.Delay(1000);
 
-                NavigationManager.NavigateTo("/admin/categories");
+                NavigationManager.NavigateTo("/admin/categories/");
             }
             catch (Exception ex)
             {
-                
+
             }
 
         }
@@ -114,11 +123,25 @@ else
                 DbContext.Categories.Remove(selectedCategory);
                 await DbContext.SaveChangesAsync();
                 NavigationManager.NavigateTo("/admin/");
+
+                validationMessage = "Successfully deleted the category.";
+
+                StateHasChanged();
+
+                await Task.Delay(1000);
+
+                NavigationManager.NavigateTo("/admin/categories");
+
+                return;
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
+
+            validationMessage = "Error Deleting the category..";
+            StateHasChanged();
         }
     }
 

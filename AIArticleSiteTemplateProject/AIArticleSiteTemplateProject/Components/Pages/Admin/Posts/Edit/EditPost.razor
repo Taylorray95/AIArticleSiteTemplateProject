@@ -160,7 +160,7 @@ else
             }
             else
             {
-                NavigationManager.NavigateTo("/admin/");
+                //NavigationManager.NavigateTo("/admin/");
             }
             isLoading = false;
             StateHasChanged();
@@ -206,7 +206,7 @@ else
                 await JSRuntime.InvokeVoidAsync("scrollToTop");
                 await Task.Delay(1000);
 
-                NavigationManager.NavigateTo("/admin/");
+                NavigationManager.NavigateTo("/admin/posts");
 
                 
             }
@@ -239,7 +239,7 @@ else
             {
                 DbContext.Posts.Remove(post);
                 await DbContext.SaveChangesAsync();
-                NavigationManager.NavigateTo("/admin/");
+                NavigationManager.NavigateTo("/admin/posts");
             }
             catch (Exception ex)
             {

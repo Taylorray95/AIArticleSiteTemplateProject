@@ -4,6 +4,7 @@ using AIArticleSiteTemplateProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AIArticleSiteTemplateProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231127225710_addCategoryActiveFlag")]
+    partial class addCategoryActiveFlag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,9 +139,6 @@ namespace AIArticleSiteTemplateProject.Migrations
 
                     b.Property<DateTime>("SysDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("isActiveFlag")
-                        .HasColumnType("bit");
 
                     b.HasKey("CategoryId");
 

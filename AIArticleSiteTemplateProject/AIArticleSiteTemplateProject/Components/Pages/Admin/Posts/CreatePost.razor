@@ -7,12 +7,14 @@
 @inject ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 
+<NavLink class="btn btn-link" href="/admin/posts/">Go Back To Post Administration</NavLink>
+
 @if (!isLoading)
 {
-@if (!string.IsNullOrEmpty(validationMessage))
-{
-    <div class="alert alert-info">@validationMessage</div>
-}
+    @if (!string.IsNullOrEmpty(validationMessage))
+    {
+        <div class="alert alert-info">@validationMessage</div>
+    }
 <br />
 
 <EditForm Model="@post" OnValidSubmit="@HandleValidSubmit">
@@ -40,7 +42,7 @@
             <option value="">Select a Category</option>
             @foreach (var category in categories)
             {
-                <option value="@category.CategoryId">@category.CategoryDesc</option>
+                <option value="@category.CategoryId">@category.CategoryName</option>
             }
         </InputSelect>
     </div>
@@ -115,9 +117,12 @@ else
         if (firstRender)
         {
             isLoading = true;
-            categories = await DbContext.Categories.ToListAsync();
+            categories = await DbContext.Categories
+                                     .Where(c => c.isActiveFlag) 
+                                     .ToListAsync();
             postStatuses = await DbContext.PostStatuses.ToListAsync();
-            isLoading = false; 
+            isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -143,6 +148,7 @@ else
 
             ClearForm();
             validationMessage = "Post submitted successfully";
+            return;
         }
         catch (DbUpdateException ex)
         {

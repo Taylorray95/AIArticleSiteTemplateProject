@@ -6,7 +6,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
 
-@if (!isLoading)
+    @if ( post != null)
 {
     <h2>Post Details</h2>
     <div>
@@ -14,7 +14,7 @@
         <strong>Title:</strong> @post.PostTitle<br />
         <strong>Short Title:</strong> @post.PostShortTitle<br />
         <strong>Body:</strong> @post.PostBody<br />
-        <strong>Category:</strong> @post.Category?.CategoryDesc<br />
+        <strong>Category:</strong> @post.Category?.CategoryName<br />
         <strong>Status:</strong> @post.PostStatus?.StatusDesc<br />
         <strong>Posted Date:</strong> @post.PostSysDate?.ToString("g")<br />
         <strong>Last Updated:</strong> @post.PostLastUpdated?.ToString("g")<br />
@@ -39,43 +39,31 @@
 
     </div>
     <button @onclick="() => EditPost(post.PostId)" class="btn btn-primary">Edit Post</button>
-}
-else
-{
-    <p>Loading post details...</p>
-}
+ }
 
 @code {
-    private bool isLoading = true;
     private Post? post;
     private List<ArticleParsed>? articlesParsed;
     [Parameter]
     public int PostId { get; set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
+        post = await DbContext.Posts
+                               .Include(p => p.Category)
+                               .Include(p => p.PostStatus)
+                               .FirstOrDefaultAsync(p => p.PostId == PostId);
+
+        if (post != null)
         {
-            isLoading = true;
-            post = await DbContext.Posts
-                                .Include(p => p.Category)
-                                .Include(p => p.PostStatus)
-                                .FirstOrDefaultAsync(p => p.PostId == PostId);
-
-            if (post != null)
-            {
-                articlesParsed = await DbContext.ArticleParsed
-                                                .Where(a => a.PostId == post.PostId)
-                                                .ToListAsync();
-            }
-
-            isLoading = false;
-            StateHasChanged();
+            articlesParsed = await DbContext.ArticleParsed
+                                            .Where(a => a.PostId == post.PostId)
+                                            .ToListAsync();
         }
     }
 
     private void EditPost(int postId)
     {
-        NavigationManager.NavigateTo($"/admin/editpost/{postId}");
+        NavigationManager.NavigateTo($"/admin/edit/{postId}");
     }
 }

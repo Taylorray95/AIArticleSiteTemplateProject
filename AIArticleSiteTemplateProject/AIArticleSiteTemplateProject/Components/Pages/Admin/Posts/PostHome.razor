@@ -9,7 +9,7 @@
 
 
 
-@* @if (posts != null && posts.Any()) *@
+
 @if (!isLoading)
 {
     <NavLink class="btn btn-link" href="/admin/posts/createpost">Create a Post</NavLink>
@@ -19,7 +19,10 @@
     {
         @foreach (var category in categories)
         {
-            <button @onclick="() => FilterByCategory(category.CategoryId)">@category.CategoryDesc</button>
+            @if (category.isActiveFlag == true)
+            { 
+            <button @onclick="() => FilterByCategory(category.CategoryId)">@category.CategoryName</button>
+            }
         }
     }
 
@@ -40,7 +43,7 @@
             {
                 <tr>
                     <td>@post.PostId</td>
-                    <td>@post.Category?.CategoryDesc</td> 
+                    <td>@post.Category?.CategoryName</td> 
                     <td>@post.PostShortTitle</td>
                     <td>@post.PostTitle</td>
                     <td>@post.PostSysDate?.ToString("g")</td>
@@ -128,12 +131,12 @@ else
 
     private void ViewPost(int postId)
     {
-        NavigationManager.NavigateTo($"/admin/view/{postId}");
+        NavigationManager.NavigateTo($"/admin/posts/view/{postId}");
     }
 
     private void EditPost(int postId)
     {
-        NavigationManager.NavigateTo($"/admin/edit/{postId}");
+        NavigationManager.NavigateTo($"/admin/posts/edit/{postId}");
     }
 
     private void DeletePost(int postId)
