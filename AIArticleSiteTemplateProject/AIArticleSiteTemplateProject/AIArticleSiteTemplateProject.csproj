@@ -19,4 +19,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Pages\Admin\Users\View\" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,31 @@
+﻿@page "/admin/users/edit/{UserId}"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using AIArticleSiteTemplateProject.Components.Reusable
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+
+    @if (user != null)
+    {
+        @user.Id
+    }
+        
+@code{
+
+ [Parameter] public string? UserId { get; set; }
+
+    private ApplicationUser? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserManager.FindByIdAsync(UserId!);
+        
+    }
+}
