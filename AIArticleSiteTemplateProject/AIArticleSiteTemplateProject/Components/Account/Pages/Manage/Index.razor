@@ -47,6 +47,14 @@
     <h2>Profile Photo</h2>
     <br />
     <div class="col-md-6">
+        @if (showError && !string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="text-danger">@statusMessage</div>
+        }
+        @if (!showError && !string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="text-success">@statusMessage</div>
+        }
         <div class="form-floating mb-3">
         <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
         <InputFile OnChange="OnInputFileChange" class="form-control" />
@@ -61,15 +69,12 @@
         </div>
     </div>
 </div>
-@test
 
 
 @code {
     private string statusMessage = "";
     private bool showError = false;
-    private ApplicationUser user = default!;
-
-    private string? test;
+    private ApplicationUser? user = default!;
     private string? username;
     private string? phoneNumber;
     private string? imageUrl;
@@ -94,7 +99,7 @@
     {
         if (Input.PhoneNumber != phoneNumber)
         {
-            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user!, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
                 statusMessage = "Error: Failed to set phone number.";
@@ -103,7 +108,7 @@
             }
         }
 
-        await SignInManager.RefreshSignInAsync(user);
+        await SignInManager.RefreshSignInAsync(user!);
         statusMessage = "Your profile has been updated";
         showError = false;
         StateHasChanged();
@@ -148,25 +153,58 @@
     private async Task SavePhoto()
     {
         StateHasChanged();
-        if (selectedFile != null)
+
+        try
         {
-            var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
+            if (selectedFile != null)
+            {
+                var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
 
-            var blobClient = blobContainer.GetBlobClient(Guid.NewGuid().ToString() + Path.GetExtension(selectedFile.Name));
+                //delete old photo if it isn't the 'default' photo 
+                if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != "https://newshog.blob.core.windows.net/profile-photos/default.png")
+                {
+                    // Extract blob name from the URL and delete the old photo
+                    var oldBlobName = new Uri(user.ProfilePhoto).Segments.Last();
+                    var oldBlobClient = blobContainer.GetBlobClient(oldBlobName);
+                    await oldBlobClient.DeleteIfExistsAsync();
+                }
 
-            await using var stream = selectedFile.OpenReadStream();
-            await blobClient.UploadAsync(stream, overwrite: true);
+                var blobClient = blobContainer.GetBlobClient(Guid.NewGuid().ToString() + Path.GetExtension(selectedFile.Name));
 
-            user.ProfilePhoto = blobClient.Uri.AbsoluteUri;
-            await UserManager.UpdateAsync(user);
-            imageUrl = user.ProfilePhoto;
+                await using var stream = selectedFile.OpenReadStream();
+                await blobClient.UploadAsync(stream, overwrite: true);
+
+                user.ProfilePhoto = blobClient.Uri.AbsoluteUri;
+                await UserManager.UpdateAsync(user);
+                imageUrl = user.ProfilePhoto;
+
+                statusMessage = "Profile photo updated successfully.";
+                showError = false;
+            }
+        }
+        catch (Exception Ex)
+        {
+            Console.WriteLine(Ex.ToString());
+            statusMessage = "Error updating profile photo";
+            showError = true;
         }
     }
 
     private async Task ResetPhoto()
     {
-        user.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
-        await UserManager.UpdateAsync(user);
-        imageUrl = user.ProfilePhoto;
+        try
+        {
+            user!.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
+            await UserManager.UpdateAsync(user);
+            imageUrl = user.ProfilePhoto;
+            statusMessage = "Profile photo reset to default.";
+            showError = false;
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error resetting profile photo: {ex.Message}";
+            showError = true;
+        }
+        StateHasChanged();
     }
 }
