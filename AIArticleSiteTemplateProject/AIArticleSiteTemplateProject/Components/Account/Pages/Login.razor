@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using AIArticleSiteTemplateProject.Data
+@inject UserManager<ApplicationUser> UserManager
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
@@ -93,6 +94,15 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
+
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+            if (user != null)
+            {
+                // Update the LastLogin property
+                user.LastLogin = DateTime.Now;
+                await UserManager.UpdateAsync(user);
+            }
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)

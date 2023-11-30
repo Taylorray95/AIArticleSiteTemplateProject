@@ -12,20 +12,190 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject RoleManager<IdentityRole> RoleManager
 
+
+
+
+<h1>User Role Administration</h1>
+
+@if (!isLoading)
+{
+    @if (!string.IsNullOrEmpty(validationMessage))
+    {
+        <div class="alert alert-info">@validationMessage</div>
+    }
+
+    <br />
+
     @if (user != null)
     {
-        @user.Id
+        <form class="form-horizontal">
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Username:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.UserName</p>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Email:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.Email</p>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Email Confirmed?:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.EmailConfirmed</p>
+                </div>
+            </div>
+
+            @if (!String.IsNullOrEmpty(user.PhoneNumber))
+            {
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Phone Number:</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">@user.PhoneNumber</p>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Phone Number Confirmed?</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">@user.PhoneNumberConfirmed</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Phone Number:</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static">User hasn't added a phone number</p>
+                    </div>
+                </div>
+            }
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Profile Photo:</label>
+                <div class="col-sm-10">
+                    <img src="@user.ProfilePhoto" width="300" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Registration Date:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.RegistrationDate</p>
+                </div>
+            </div>
+
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Last Login:</label>
+                <div class="col-sm-10">
+                    <p class="form-control-static">@user.LastLogin</p>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-2 col-form-label">Role:</label>
+                <div class="col-sm-10">
+                    <select class="form-control" @bind="userRole">
+                        <option value="User">User</option>
+                        @foreach (var role in allRoles!)
+                        {
+                            <option value="@role.Name">@role.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" class="btn btn-primary" @onclick="UpdateUserRole">Update Role</button>
+                </div>
+            </div>
+        </form>
     }
+    else
+    {
+        <div>Loading...</div>
+    }
+}
+
+   
         
 @code{
 
- [Parameter] public string? UserId { get; set; }
+    [Parameter] public string? UserId { get; set; }
 
     private ApplicationUser? user;
+    private List<IdentityRole>? allRoles;
+    private string? userRole;
+    private string validationMessage = "";
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         user = await UserManager.FindByIdAsync(UserId!);
-        
+        var roles = await UserManager.GetRolesAsync(user!);
+        userRole = roles.FirstOrDefault() ?? "User";
+        allRoles = await RoleManager.Roles.ToListAsync();
+        isLoading = false;
     }
+
+    private async Task HandleRoleChange(ChangeEventArgs e)
+    {
+        userRole = e.Value?.ToString();
+        await UpdateUserRole();
+    }
+
+    private async Task UpdateUserRole()
+    {
+        var currentRoles = await UserManager.GetRolesAsync(user!);
+
+        if (userRole == "User")
+        {
+            if (currentRoles.Any())
+            {
+                try
+                {
+                    await UserManager.RemoveFromRolesAsync(user!, currentRoles);
+                    validationMessage = "Successfully Updated User's Role.";
+                    StateHasChanged();
+                    await Task.Delay(1500);
+                    NavigationManager.NavigateTo("/admin/users/");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());    
+                }
+
+                validationMessage = "Error Updating User Role";
+            }
+        }
+        else
+        {
+            try
+            {
+                await UserManager.RemoveFromRolesAsync(user!, currentRoles);
+                await UserManager.AddToRoleAsync(user!, userRole!);
+
+                validationMessage = "Successfully Updated User's Role.";
+                StateHasChanged();
+                await Task.Delay(1500);
+                NavigationManager.NavigateTo("/admin/users/");
+            }
+            catch (Exception Ex)
+            {
+                Console.WriteLine(Ex.ToString());
+            }
+
+            validationMessage = "Error Updating User Role";
+        }
+    }
+
+
 }

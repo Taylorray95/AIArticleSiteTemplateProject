@@ -73,6 +73,11 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+
+            // Update the LastLogin property
+            user.LastLogin = DateTime.Now;
+            await UserManager.UpdateAsync(user);
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.IsLockedOut)

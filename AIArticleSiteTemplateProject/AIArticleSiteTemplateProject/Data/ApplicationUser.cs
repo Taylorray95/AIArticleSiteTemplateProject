@@ -6,6 +6,10 @@ namespace AIArticleSiteTemplateProject.Data
     public class ApplicationUser : IdentityUser
     {
         public string? ProfilePhoto { get; set; } = "https://newshog.blob.core.windows.net/profile-photos/default.png";
+
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
+
+        public DateTime LastLogin { get; set; } = DateTime.Now;
     }
 
 }
