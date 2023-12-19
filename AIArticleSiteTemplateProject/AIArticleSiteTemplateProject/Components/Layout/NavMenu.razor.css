@@ -1,4 +1,4 @@
-.navbar-toggler {
+/*.navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -52,20 +52,4 @@
             background-color: #d6d6d6;
             color: #000000;
         }
-
-/*@media (min-width: 641px) {
-    .navbar-toggler {
-        display: none;
-    }
-
-    .collapse {
-
-        display: block;
-    }
-    
-    .nav-scrollable {
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
-    }
-}
 */

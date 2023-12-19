@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Content\" />
+    <Folder Include="Components\Interactive\" />
     <Folder Include="Components\Pages\Admin\Users\View\" />
   </ItemGroup>
 

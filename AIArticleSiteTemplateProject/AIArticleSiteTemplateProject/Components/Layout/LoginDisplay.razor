@@ -1,23 +1,28 @@
 ﻿@implements IDisposable
 
 @inject NavigationManager NavigationManager
+<style>
+  
+
+</style>
+<div class="top-row-LoginDisplay">
 <AuthorizeView>
     <Authorized>
-        <div class="user-info">
-            <span>Hello, @context.User.Identity?.Name!</span>
+        <div class="">
+                <a class="logout-link">Hello, @context.User.Identity?.Name!</a>
             <form method="post" action="Account/Logout" class="logout-form">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                <button type="submit" class="logout-link">Log out</button>
-            </form>
+                    <button type="submit" class="logout-link">Log out</button>
+                </form>
         </div>
     </Authorized>
     <NotAuthorized>
-        <a href="/Account/Register">Register</a>
-        <a href="/Account/Login">Log in</a>
+            <a class="logout-link" href="/Account/Register" style="margin-right:15px">Register</a>
+            <a class="logout-link" href="/Account/Login">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
-
+</div>
 
 @code {
     private string? currentUrl;
