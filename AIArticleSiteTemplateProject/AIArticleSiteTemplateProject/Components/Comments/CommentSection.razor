@@ -8,27 +8,12 @@
 @rendermode InteractiveServer
 
 
-@if (isLoading)
+@if (isLoading || comments is null)
 {
 <div>loading..</div>    
 }
 else
 {
-    @if (IsUserLoggedIn)
-    {
-        @if (showCommentSection)
-        {
-            <textarea @bind="newComment.CommentBody" placeholder="Write a comment..."></textarea>
-            <button @onclick="AddComment">Post Comment</button>
-            <button @onclick="CancelComment">Cancel</button>
-            <label>@valComment</label>
-        }
-        else
-        {
-            <button @onclick="() => showCommentSection = true">Add a Comment</button>
-        }
-    }
-
     <h3>Comments</h3>
 
     <div class="comments">
@@ -37,13 +22,13 @@ else
             @if (showCommentSection)
             {
                 <textarea @bind="newComment.CommentBody" placeholder="Write a comment..."></textarea>
-                <button @onclick="AddComment" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
+                <button @onclick="AddComment" style="background-color: #007BFF;margin-bottom:10px; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
                 <button class="button-x" @onclick="CancelComment">X</button>
                 <label style="color:red;">@valComment</label>
             }
             else
             {
-                <button @onclick="() => showCommentSection = true" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Add a Comment</button>
+                <button @onclick="() => showCommentSection = true" style="background-color: #007BFF; margin-bottom:10px;color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Add a Comment</button>
             }
 
         }
@@ -52,7 +37,7 @@ else
             <p>You must be logged in to post a comment.</p>
         }
 
-        <h3>Comments</h3>
+     
 
 
         @if (comments!.Count == 0)
@@ -117,6 +102,20 @@ else
             }
         }
     </div>
+
+    @if (replyToComment != null)
+    {
+        <div class="modal" style="display: @(showReplySection ? "block" : "none");">
+            <div class="modal-content">
+                <h3>Reply to @replyToComment.CommentBody</h3>
+                <textarea @bind="newReply.CommentBody" placeholder="Write a reply..."></textarea>
+                <button @onclick="AddReply" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Reply</button>
+                <button class="button-x" @onclick="CancelReply">X</button>
+
+                <label style="color:red;">@valReply</label>
+            </div>
+        </div>
+    }
 }
     
 
@@ -221,15 +220,16 @@ else
         }
 
         replyButtonDisabled = false;
-        newReply.PostId = post!.PostId;
+        newReply.PostId = PostId;
         newReply.ParentCommentId = replyToComment!.CommentId!;
         newReply.UserId = CurrentUser!.Id; // Assign the user's ID to the reply
         newReply.UserName = CurrentUser!.UserName; // Assign the user's username to the reply
         await PostService.AddComment(newReply);
         await PostService.IncrementTotalComments(postIdParsed);
-        comments = await PostService.GetCommentsByPostId(post.PostId); // Refresh comments
+        comments = await PostService.GetCommentsByPostId(PostId); // Refresh comments
         newReply = new Comment(); // Clear the new reply
         replyToComment = null; // Clear the reply target
+
     }
 
     private void BeginReply(Comment comment)

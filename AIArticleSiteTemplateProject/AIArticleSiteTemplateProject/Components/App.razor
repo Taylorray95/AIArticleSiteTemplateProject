@@ -39,8 +39,20 @@
                 }, 20);
             }
         }
-    </script>
 
+
+    </script>
+    <script>
+        window.scrollToElement = (elementId) => {
+            let element = document.getElementById(elementId);
+            element.scrollIntoView({ behavior: "smooth" });
+        };
+    </script>
+    <script>
+        window.scrollToBottom = () => {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
 </head>
 
 <body>
