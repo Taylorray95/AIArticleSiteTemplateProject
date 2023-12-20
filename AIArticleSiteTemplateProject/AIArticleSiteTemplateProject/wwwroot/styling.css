@@ -359,6 +359,7 @@ a, .logout-link {
     height: 3rem;
     display: flex;
     align-items: center;
+    width:100%;
 }
 
 .filter-container .trending-form {

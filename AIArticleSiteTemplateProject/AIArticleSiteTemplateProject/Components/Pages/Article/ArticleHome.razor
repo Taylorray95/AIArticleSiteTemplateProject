@@ -1,0 +1,82 @@
+﻿@page "/article/{PostId:int}/{PostShortTitle}"
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Data
+
+@inject Services.PostService PostService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+<PageTitle>Home</PageTitle>
+
+@if (isLoading)
+{
+    <div>Loading..</div>
+
+}
+else
+{
+    if (post != null)
+    {
+    <div class="article">
+        <div class="article-body">
+
+        <h5>@post.PostTitle</h5>
+            <p class="date">@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+        @if (!string.IsNullOrEmpty(post.PostBody))
+        {
+           
+            <div>@post.PostBody</div>
+
+            <div style="margin: 20px 0;">
+
+                    <img class="article-img" src="@post.HeaderImage" alt="@post.PostTitle">
+            </div>
+
+        }
+        </div>
+    </div>    
+
+    }
+    <AIArticleSiteTemplateProject.Components.Comments.CommentSection PostId="PostId"></AIArticleSiteTemplateProject.Components.Comments.CommentSection>
+}
+
+@code{
+
+    [Parameter]
+    public int PostId { get; set; }
+    [Parameter]
+    public string? PostShortTitle { get; set; }
+
+    private ApplicationUser? CurrentUser { get; set; }
+    private bool IsUserLoggedIn { get; set; }
+
+    private bool replyButtonDisabled = false;
+
+    private bool showCommentSection = false;
+    private bool showReplySection = false;
+
+    private Post? post;
+    private List<Comment>? comments;
+    private Comment? replyToComment;
+    private Comment newComment = new Comment();
+    private Comment newReply = new Comment();
+
+    private string valReply = "";
+    private string valComment = "";
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+            post = await PostService.GetPostById(PostId);
+
+        await PostService.IncrementPageViews(PostId);
+
+
+            isLoading = false;
+    }
+}

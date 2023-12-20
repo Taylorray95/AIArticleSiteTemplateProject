@@ -1,0 +1,263 @@
+﻿@inject Services.PostService PostService
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Data
+@inject IJSRuntime JSRuntime
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+
+@if (isLoading)
+{
+<div>loading..</div>    
+}
+else
+{
+    @if (IsUserLoggedIn)
+    {
+        @if (showCommentSection)
+        {
+            <textarea @bind="newComment.CommentBody" placeholder="Write a comment..."></textarea>
+            <button @onclick="AddComment">Post Comment</button>
+            <button @onclick="CancelComment">Cancel</button>
+            <label>@valComment</label>
+        }
+        else
+        {
+            <button @onclick="() => showCommentSection = true">Add a Comment</button>
+        }
+    }
+
+    <h3>Comments</h3>
+
+    <div class="comments">
+        @if (IsUserLoggedIn)
+        {
+            @if (showCommentSection)
+            {
+                <textarea @bind="newComment.CommentBody" placeholder="Write a comment..."></textarea>
+                <button @onclick="AddComment" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
+                <button class="button-x" @onclick="CancelComment">X</button>
+                <label style="color:red;">@valComment</label>
+            }
+            else
+            {
+                <button @onclick="() => showCommentSection = true" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Add a Comment</button>
+            }
+
+        }
+        else
+        {
+            <p>You must be logged in to post a comment.</p>
+        }
+
+        <h3>Comments</h3>
+
+
+        @if (comments!.Count == 0)
+        {
+
+            <label style="display:block;">No comments on this article yet.</label>
+        }
+        else
+        {
+            @foreach (var comment in comments)
+            {
+                <div class="comment">
+                    <div class="profile-section">
+                        @if (userPhotos.ContainsKey(comment!.UserId))
+                        {
+                            <img class="profile-photo" src="@userPhotos[comment.UserId]" />
+                        }
+                        <p class="username">@comment.UserName</p>
+                    </div>
+                    <p class="comment-body">@comment.CommentBody</p>
+                    <p class="comment-date">Posted on: @comment.CommentSysDate</p>
+
+                    @if (IsUserLoggedIn && comment.ParentCommentId == null)
+                    {
+                        <button disabled="@replyButtonDisabled" @onclick="() => BeginReply(comment)">Reply</button>
+                    }
+
+                    @if (comment.Replies != null && comment.Replies.Any())
+                    {
+                        <button @onclick="() => ToggleReplies(comment.CommentId)">
+                            @if (shownReplies.Contains(comment.CommentId))
+                            {
+                                @:Hide Replies
+                            }
+                            else
+                            {
+                                @:Show Replies
+                            }
+                        </button>
+
+                        @if (shownReplies.Contains(comment.CommentId))
+                        {
+                            <div class="replies">
+                                @foreach (var reply in comment.Replies)
+                                {
+                                    <div class="reply reply-box">
+                                        <div class="profile-section">
+                                            @if (userPhotos.ContainsKey(reply!.UserId))
+                                            {
+                                                <img class="profile-photo" src="@userPhotos[reply.UserId]" />
+                                            }
+                                            <p class="username">@reply.UserName</p>
+                                        </div>
+                                        <p class="comment-body">@reply.CommentBody</p>
+                                        <p class="comment-date">Posted on: @reply.CommentSysDate</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+    </div>
+}
+    
+
+
+@code {
+    [Parameter]
+    public int PostId { get; set; }
+    [Parameter]
+    public string? PostShortTitle { get; set; }
+
+    public int postIdParsed;
+
+    private ApplicationUser? CurrentUser { get; set; }
+    private bool IsUserLoggedIn { get; set; }
+
+    private bool replyButtonDisabled = false;
+
+    private bool showCommentSection = false;
+    private bool showReplySection = false;
+
+    private Post? post;
+    private List<Comment>? comments;
+    private Comment? replyToComment;
+    private Comment newComment = new Comment();
+    private Comment newReply = new Comment();
+
+    public string valReply = "";
+    public string valComment = "";
+
+    public bool isLoading = true;
+    private Dictionary<string, string> userPhotos = new Dictionary<string, string>();
+
+    private HashSet<int> shownReplies = new HashSet<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        comments = await PostService.GetCommentsByPostId(PostId);
+
+        foreach (var comment in comments)
+        {
+            var commentUser = await UserManager.FindByIdAsync(comment!.UserId!);
+            if (commentUser != null)
+            {
+                userPhotos[comment.UserId] = commentUser!.ProfilePhoto!;
+            }
+        }
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        IsUserLoggedIn = SignInManager.IsSignedIn(user); // Check if user is logged in
+
+        if (IsUserLoggedIn)
+        {
+            CurrentUser = await UserManager.GetUserAsync(user); // Get the logged-in user's information
+            userPhotos[CurrentUser!.Id] = CurrentUser!.ProfilePhoto!;
+        }
+        isLoading = false;
+    }
+
+
+    private async Task AddComment()
+    {
+        if (String.IsNullOrWhiteSpace(newComment.CommentBody))
+        {
+            valComment = "Your comment cannot be empty, please say something!";
+            return;
+        }
+        else
+        {
+            valComment = "";
+        }
+
+        newComment.PostId = PostId;
+        newComment.UserId = CurrentUser!.Id; // Assign the user's ID to the comment
+        newComment.UserName = CurrentUser.UserName; // Assign the user's username to the comment
+        await PostService.AddComment(newComment);
+        await PostService.IncrementTotalComments(PostId);
+        comments = await PostService.GetCommentsByPostId(PostId); // Refresh comments
+        newComment = new Comment(); // Clear the new comment
+        showCommentSection = false;
+    }
+
+    private void CancelComment()
+    {
+        newComment = new Comment(); // Clear the new comment
+        valComment = "";
+        showCommentSection = false;
+    }
+
+    private async Task AddReply()
+    {
+        if (String.IsNullOrWhiteSpace(newReply.CommentBody))
+        {
+            valReply = "Your reply cannot be empty, please say something!";
+            return;
+        }
+        else
+        {
+            valReply = "";
+        }
+
+        replyButtonDisabled = false;
+        newReply.PostId = post!.PostId;
+        newReply.ParentCommentId = replyToComment!.CommentId!;
+        newReply.UserId = CurrentUser!.Id; // Assign the user's ID to the reply
+        newReply.UserName = CurrentUser!.UserName; // Assign the user's username to the reply
+        await PostService.AddComment(newReply);
+        await PostService.IncrementTotalComments(postIdParsed);
+        comments = await PostService.GetCommentsByPostId(post.PostId); // Refresh comments
+        newReply = new Comment(); // Clear the new reply
+        replyToComment = null; // Clear the reply target
+    }
+
+    private void BeginReply(Comment comment)
+    {
+        replyButtonDisabled = true;
+        showReplySection = true;
+        replyToComment = comment;
+        JSRuntime.InvokeVoidAsync("scrollToElement", "reply-modal");
+    }
+
+    private void CancelReply()
+    {
+        newReply = new Comment(); // Clear the reply target
+        replyButtonDisabled = false; // Enable the reply button
+        valReply = "";
+        showReplySection = false;
+    }
+
+    private void ToggleReplies(int commentId)
+    {
+        if (shownReplies.Contains(commentId))
+        {
+            shownReplies.Remove(commentId);
+        }
+        else
+        {
+            shownReplies.Add(commentId);
+        }
+    }
+
+}
