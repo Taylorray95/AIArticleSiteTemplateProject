@@ -9,7 +9,7 @@
 <AuthorizeView>
     <Authorized>
         <div class="">
-                <a class="logout-link">Hello, @context.User.Identity?.Name!</a>
+                <a href="/Account/Manage" class="logout-link">Hello, @context.User.Identity?.Name!</a>
             <form method="post" action="Account/Logout" class="logout-form">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="@currentUrl" />

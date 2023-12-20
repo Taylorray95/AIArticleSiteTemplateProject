@@ -11,12 +11,36 @@
     <link rel="icon" type="image/png" href="news-hog-logo-transparent.png" />
     <HeadOutlet />
     <script>
-        function scrollToTop() 
-        {
-            window.scrollTo(0, 0);
+        document.addEventListener('DOMContentLoaded', function () {
+            // temporarily addiing submit event listener to all forms (may change this)
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    if (window.location.pathname === '/') {
+                        saveScrollPosition('indexScrollPosition');
+                    }
+                    // ... may add other conditions for different pages so can save the scroll position for other pages
+                });
+            });
+
+            // restoring the scroll position specifically for index page
+            restoreScrollPosition('indexScrollPosition');
+        });
+
+        function saveScrollPosition(key) {
+            localStorage.setItem(key, window.scrollY || document.documentElement.scrollTop);
         }
 
+        function restoreScrollPosition(key) {
+            const savedPosition = localStorage.getItem(key);
+            if (savedPosition) {
+                setTimeout(function () {
+                    window.scrollTo(0, parseInt(savedPosition));
+                    localStorage.removeItem(key);
+                }, 20);
+            }
+        }
     </script>
+
 </head>
 
 <body>

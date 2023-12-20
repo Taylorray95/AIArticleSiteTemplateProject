@@ -360,3 +360,16 @@ a, .logout-link {
     display: flex;
     align-items: center;
 }
+
+.filter-container .trending-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-container .form-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
