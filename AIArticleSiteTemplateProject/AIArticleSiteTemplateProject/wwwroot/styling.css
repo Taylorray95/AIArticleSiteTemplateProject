@@ -212,6 +212,9 @@ button {
 
 .comment-body {
     margin-top: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .comment-date {
@@ -284,6 +287,30 @@ h3 {
         text-decoration: none;
         color: black;
     }
+
+.selected-category {
+    background-color: #2F80ED; /* A soft blue background */
+    color: white; /* White text for contrast */
+    border: 2px solid #2569B2; /* A slightly darker blue border for definition */
+    font-weight: bold; /* Make the category name bold */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* A more subtle shadow for depth */
+    padding: 10px; /* Increase padding for a better visual effect */
+    border-radius: 5px; /* Rounded corners for a smoother look */
+    transition: background-color 0.3s, border-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.category a:hover,
+.category.selected-category a {
+    text-decoration: none; /* Remove the underline on hover */
+    color: white; /* Keep the text white on hover */
+}
+
+.category:hover,
+.category.selected-category {
+    background-color: #4C8DF5; /* Lighter blue on hover for interactive feedback */
+    border-color: #2C6DB7; /* Slightly change border color on hover */
+}
+
 
 
 
@@ -373,4 +400,10 @@ a, .logout-link {
     display: flex;
     align-items: center;
     gap: 5px;
+}
+
+.button-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

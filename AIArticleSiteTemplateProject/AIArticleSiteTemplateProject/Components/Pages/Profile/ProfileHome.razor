@@ -1,0 +1,104 @@
+﻿@page "/profile/{Username}"
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject Services.PostService PostService
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Components
+@using System.Linq
+@rendermode InteractiveServer
+@* @attribute [StreamRendering(true)] *@
+
+<PageTitle>User Profile</PageTitle>
+
+@if (userProfile == null || userComments == null)
+{
+    <div>Loading profile...</div>
+}
+else
+{
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-4">
+                <img src="@userProfile.ProfilePhoto" alt="Profile Photo" class="img-thumbnail" />
+                <h3>@userProfile.UserName</h3>
+                <p>Member since: @userProfile.RegistrationDate.ToString("d")</p>
+                <p>Last login: @userProfile.LastLogin.ToString("g")</p>
+            </div>
+            <div class="col-md-8">
+                <h4>Comment History</h4>
+                <div class="list-group">
+                    @foreach (var comment in userComments)
+                    {
+                        <a href="/article/@comment.PostId" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between flex-wrap">
+                                <p class="mb-1 flex-shrink-1" style="word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;word-break: break-all;">@comment.CommentBody</p>
+                                <small>Commented on @comment.CommentSysDate.ToString("g")</small>
+                            </div>
+                        </a>
+                    }
+                </div>
+                <ul class="pagination">
+                    @for (var i = 1; i <= totalPages; i++)
+                    {
+                        var localPage = i; // Create a local copy of the loop variable or else it will always pass totalPages instead of the actual selected page because that's what was last stored in memory'
+                        <li class="page-item @(localPage == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => LoadCommentsPage(localPage)">@localPage</button>
+                        </li>
+                    }
+                </ul>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Username { get; set; }
+    private ApplicationUser userProfile;
+    private List<Comment> userComments;
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int pageSize = 5; // Set the number of comments per page
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        userProfile = await UserManager.FindByNameAsync(Username);
+        if (userProfile != null)
+        {
+            await LoadCommentsPage(currentPage);
+        }
+    
+
+    private async Task LoadCommentsPage(int page)
+    {
+        try
+        {
+            Console.WriteLine($"Attempting to load comments for page: {page}");
+
+            currentPage = page;
+
+            var commentsQuery = PostService.GetCommentsByUserId(userProfile.Id).AsNoTracking();
+
+            var totalItems = await commentsQuery.CountAsync();
+
+            totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var skipAmount = (page - 1) * pageSize;
+            var commentsToTake = pageSize;
+
+            userComments = await commentsQuery.Skip(skipAmount).Take(commentsToTake).ToListAsync();
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while loading comments: {ex.Message}");
+        }
+    }
+
+}

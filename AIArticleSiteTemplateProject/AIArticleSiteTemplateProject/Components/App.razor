@@ -36,7 +36,7 @@
                 setTimeout(function () {
                     window.scrollTo(0, parseInt(savedPosition));
                     localStorage.removeItem(key);
-                }, 20);
+                }, 1);
             }
         }
 
@@ -45,14 +45,49 @@
     <script>
         window.scrollToElement = (elementId) => {
             let element = document.getElementById(elementId);
-            element.scrollIntoView({ behavior: "smooth" });
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth" });
+            } else {
+                console.error('Element not found: ' + elementId);
+            }
         };
+
     </script>
     <script>
         window.scrollToBottom = () => {
             window.scrollTo(0, document.body.scrollHeight);
         }
     </script>
+    <script>
+        window.initializeCommentListener = () => {
+            const maxCommentSize = 750;
+            setupCharacterCountListener('commentTextArea', 'valCharCountComments', maxCommentSize);
+            setupCharacterCountListener('replyTextArea', 'valCharCountReplys', maxCommentSize);
+        };
+
+        function setupCharacterCountListener(textareaId, messageId, maxCommentSize) {
+            const textarea = document.getElementById(textareaId);
+            const messageElement = document.getElementById(messageId);
+
+            if (textarea && messageElement) {
+                console.log('Listener added for:', textareaId);
+                textarea.addEventListener('input', () => {
+                    const currentLength = textarea.value.length;
+                    console.log('Current Length:', currentLength);
+                    if (currentLength > maxCommentSize) {
+                        console.log('Exceeded max length for:', textareaId);
+                        textarea.value = textarea.value.substring(0, maxCommentSize); 
+                        messageElement.textContent = `Maximum character limit reached (${maxCommentSize} characters).`;
+                    } else {
+                        messageElement.textContent = '';
+                    }
+                });
+            } else {
+                console.log('Element not found:', textareaId, messageId);
+            }
+        }
+    </script>
+
 </head>
 
 <body>

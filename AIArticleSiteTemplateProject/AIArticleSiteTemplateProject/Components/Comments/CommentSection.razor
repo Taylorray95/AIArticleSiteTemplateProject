@@ -6,6 +6,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
+@inject NavigationManager NavManager
 
 
 @if (isLoading || comments is null)
@@ -21,10 +22,11 @@ else
         {
             @if (showCommentSection)
             {
-                <textarea @bind="newComment.CommentBody" placeholder="Write a comment..."></textarea>
+                <textarea @bind="newComment.CommentBody" id="commentTextArea" placeholder="Write a comment..."></textarea>
                 <button @onclick="AddComment" style="background-color: #007BFF;margin-bottom:10px; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
                 <button class="button-x" @onclick="CancelComment">X</button>
                 <label style="color:red;">@valComment</label>
+                <span id="valCharCountComments" style="color:red;"></span>
             }
             else
             {
@@ -50,12 +52,12 @@ else
             @foreach (var comment in comments)
             {
                 <div class="comment">
-                    <div class="profile-section">
+                    <div class="profile-section" @onclick="() => NavigateToProfile(comment.UserName)">
                         @if (userPhotos.ContainsKey(comment!.UserId))
                         {
-                            <img class="profile-photo" src="@userPhotos[comment.UserId]" />
+                            <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[comment.UserId]" />
                         }
-                        <p class="username">@comment.UserName</p>
+                        <p class="username" style="cursor:pointer;">@comment.UserName</p>
                     </div>
                     <p class="comment-body">@comment.CommentBody</p>
                     <p class="comment-date">Posted on: @comment.CommentSysDate</p>
@@ -83,13 +85,13 @@ else
                             <div class="replies">
                                 @foreach (var reply in comment.Replies)
                                 {
-                                    <div class="reply reply-box">
+                                   <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName)">
                                         <div class="profile-section">
                                             @if (userPhotos.ContainsKey(reply!.UserId))
                                             {
-                                                <img class="profile-photo" src="@userPhotos[reply.UserId]" />
+                                                <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[reply.UserId]" />
                                             }
-                                            <p class="username">@reply.UserName</p>
+                                            <p class="username" style="cursor:pointer;">@reply.UserName</p>
                                         </div>
                                         <p class="comment-body">@reply.CommentBody</p>
                                         <p class="comment-date">Posted on: @reply.CommentSysDate</p>
@@ -107,12 +109,13 @@ else
     {
         <div class="modal" style="display: @(showReplySection ? "block" : "none");">
             <div class="modal-content">
-                <h3>Reply to @replyToComment.CommentBody</h3>
-                <textarea @bind="newReply.CommentBody" placeholder="Write a reply..."></textarea>
+                <h3>Reply to @parentCommentersUsername</h3>
+                <div>@AbbreviateComment(replyToComment.CommentBody!)</div>
+                <textarea @bind="newReply.CommentBody" id="replyTextArea" placeholder="Write a reply..."></textarea>
                 <button @onclick="AddReply" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Reply</button>
                 <button class="button-x" @onclick="CancelReply">X</button>
-
-                <label style="color:red;">@valReply</label>
+                <label style="color:red;" >@valReply</label>
+                <span id="valCharCountReplys" style="color:red;"></span>
             </div>
         </div>
     }
@@ -132,6 +135,7 @@ else
     private bool IsUserLoggedIn { get; set; }
 
     private bool replyButtonDisabled = false;
+    private string? parentCommentersUsername { get; set; }
 
     private bool showCommentSection = false;
     private bool showReplySection = false;
@@ -177,9 +181,19 @@ else
         isLoading = false;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (showCommentSection || showReplySection)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeCommentListener");
+        }
+    }
+
 
     private async Task AddComment()
     {
+        const int maxCommentSize = 500;
+
         if (String.IsNullOrWhiteSpace(newComment.CommentBody))
         {
             valComment = "Your comment cannot be empty, please say something!";
@@ -219,31 +233,35 @@ else
             valReply = "";
         }
 
+        replyToComment = null; // Clear the reply target
         replyButtonDisabled = false;
         newReply.PostId = PostId;
         newReply.ParentCommentId = replyToComment!.CommentId!;
         newReply.UserId = CurrentUser!.Id; // Assign the user's ID to the reply
         newReply.UserName = CurrentUser!.UserName; // Assign the user's username to the reply
         await PostService.AddComment(newReply);
-        await PostService.IncrementTotalComments(postIdParsed);
+        await PostService.IncrementTotalComments(PostId);
         comments = await PostService.GetCommentsByPostId(PostId); // Refresh comments
         newReply = new Comment(); // Clear the new reply
-        replyToComment = null; // Clear the reply target
+        
 
     }
 
-    private void BeginReply(Comment comment)
+    private async Task BeginReply(Comment comment)
     {
+        var user = await UserManager.FindByIdAsync(comment.UserId!);
+        parentCommentersUsername = user!.UserName;
         replyButtonDisabled = true;
         showReplySection = true;
         replyToComment = comment;
-        JSRuntime.InvokeVoidAsync("scrollToElement", "reply-modal");
+        await JSRuntime.InvokeVoidAsync("scrollToElement", "reply-modal");
     }
 
     private void CancelReply()
     {
         newReply = new Comment(); // Clear the reply target
         replyButtonDisabled = false; // Enable the reply button
+        parentCommentersUsername = ""; //Reset name in the modal
         valReply = "";
         showReplySection = false;
     }
@@ -258,6 +276,26 @@ else
         {
             shownReplies.Add(commentId);
         }
+    }
+
+    public string AbbreviateComment(string comment, int maxLength = 100)
+    {
+        if (string.IsNullOrEmpty(comment))
+        {
+            return "";
+        }
+
+        if (comment.Length <= maxLength)
+        {
+            return comment;
+        }
+
+        return comment.Substring(0, maxLength) + "...";
+    }
+
+    private void NavigateToProfile(string username)
+    {
+        NavManager.NavigateTo($"/profile/{username}");
     }
 
 }

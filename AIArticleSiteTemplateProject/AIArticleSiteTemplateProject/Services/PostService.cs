@@ -114,5 +114,14 @@ namespace AIArticleSiteTemplateProject.Services
                                  .Take(amountToReturn)
                                  .ToListAsync();
         }
+
+        public IQueryable<Comment> GetCommentsByUserId(string userId)
+        {
+            return _context.Comments
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.CommentSysDate);
+        }
+
+
     }
 }

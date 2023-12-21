@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage"
+﻿@page "/Account/Manage/ManageProfile"
 @rendermode InteractiveServer
 @attribute [StreamRendering(true)] 
 @inject AuthenticationStateProvider AuthenticationStateProvider 
@@ -20,10 +20,15 @@
 <h3>Profile</h3>
 
 <style>
+
+
+
     .btn {
-        flex: 1; 
-        margin: 5px; 
+        flex: 1; /* makes the buttons expand equally to fill the wrapper */
+        margin: 5px; /* adds space between the buttons */
     }
+
+
 </style>
 
 @if (showError == true)
