@@ -85,7 +85,7 @@ else
                             <div class="replies">
                                 @foreach (var reply in comment.Replies)
                                 {
-                                   <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName)">
+                                   <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName!)">
                                         <div class="profile-section">
                                             @if (userPhotos.ContainsKey(reply!.UserId))
                                             {
@@ -205,18 +205,18 @@ else
         }
 
         newComment.PostId = PostId;
-        newComment.UserId = CurrentUser!.Id; // Assign the user's ID to the comment
-        newComment.UserName = CurrentUser.UserName; // Assign the user's username to the comment
+        newComment.UserId = CurrentUser!.Id; 
+        newComment.UserName = CurrentUser.UserName; 
         await PostService.AddComment(newComment);
         await PostService.IncrementTotalComments(PostId);
-        comments = await PostService.GetCommentsByPostId(PostId); // Refresh comments
-        newComment = new Comment(); // Clear the new comment
+        comments = await PostService.GetCommentsByPostId(PostId);
+        newComment = new Comment();
         showCommentSection = false;
     }
 
     private void CancelComment()
     {
-        newComment = new Comment(); // Clear the new comment
+        newComment = new Comment(); 
         valComment = "";
         showCommentSection = false;
     }
@@ -233,16 +233,16 @@ else
             valReply = "";
         }
 
-        replyToComment = null; // Clear the reply target
+        replyToComment = null;
         replyButtonDisabled = false;
         newReply.PostId = PostId;
         newReply.ParentCommentId = replyToComment!.CommentId!;
-        newReply.UserId = CurrentUser!.Id; // Assign the user's ID to the reply
-        newReply.UserName = CurrentUser!.UserName; // Assign the user's username to the reply
+        newReply.UserId = CurrentUser!.Id; 
+        newReply.UserName = CurrentUser!.UserName; 
         await PostService.AddComment(newReply);
         await PostService.IncrementTotalComments(PostId);
-        comments = await PostService.GetCommentsByPostId(PostId); // Refresh comments
-        newReply = new Comment(); // Clear the new reply
+        comments = await PostService.GetCommentsByPostId(PostId); 
+        newReply = new Comment(); 
         
 
     }
@@ -259,9 +259,9 @@ else
 
     private void CancelReply()
     {
-        newReply = new Comment(); // Clear the reply target
-        replyButtonDisabled = false; // Enable the reply button
-        parentCommentersUsername = ""; //Reset name in the modal
+        newReply = new Comment(); 
+        replyButtonDisabled = false;
+        parentCommentersUsername = ""; 
         valReply = "";
         showReplySection = false;
     }

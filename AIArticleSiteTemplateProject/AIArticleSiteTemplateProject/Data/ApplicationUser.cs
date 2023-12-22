@@ -10,6 +10,7 @@ namespace AIArticleSiteTemplateProject.Data
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
         public DateTime LastLogin { get; set; } = DateTime.Now;
+        public bool UserHasCommentsVisibleOnProfile { get; set; } = true;
     }
 
 }
