@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
@@ -49,7 +48,6 @@ builder.Services.AddScoped<BlobServiceClientWrapper>();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<SignInManager<ApplicationUser>, CustomSignInManager>();
-
 
 var app = builder.Build();
 

@@ -106,19 +106,22 @@ else
     </div>
 
     @if (replyToComment != null)
-    {
-        <div class="modal" style="display: @(showReplySection ? "block" : "none");">
-            <div class="modal-content">
-                <h3>Reply to @parentCommentersUsername</h3>
-                <div>@AbbreviateComment(replyToComment.CommentBody!)</div>
-                <textarea @bind="newReply.CommentBody" id="replyTextArea" placeholder="Write a reply..."></textarea>
-                <button @onclick="AddReply" style="background-color: #007BFF; color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Reply</button>
-                <button class="button-x" @onclick="CancelReply">X</button>
-                <label style="color:red;" >@valReply</label>
-                <span id="valCharCountReplys" style="color:red;"></span>
+{
+    <div class="modal" style="display: @(showReplySection ? "block" : "none");">
+        <div class="modal-content">
+            <h3>Reply to @parentCommentersUsername</h3>
+            <div>@AbbreviateComment(replyToComment.CommentBody!)</div>
+            <textarea @bind="newReply.CommentBody" id="replyTextArea" placeholder="Write a reply..."></textarea>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button @onclick="AddReply" style="background-color: #007BFF; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; margin-right: 0.5rem;">Post Reply</button>
+                <button @onclick="CancelReply" style="background-color: #FF0000; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
             </div>
+            <label style="color:red;">@valReply</label>
+            <span id="valCharCountReplys" style="color:red;"></span>
         </div>
-    }
+    </div>
+}
+
 }
     
 
@@ -163,7 +166,7 @@ else
             var commentUser = await UserManager.FindByIdAsync(comment!.UserId!);
             if (commentUser != null)
             {
-                userPhotos[comment.UserId] = commentUser!.ProfilePhoto!;
+                userPhotos[comment.UserId!] = commentUser!.ProfilePhoto!;
             }
         }
 
@@ -171,11 +174,11 @@ else
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        IsUserLoggedIn = SignInManager.IsSignedIn(user); // Check if user is logged in
+        IsUserLoggedIn = SignInManager.IsSignedIn(user); 
 
         if (IsUserLoggedIn)
         {
-            CurrentUser = await UserManager.GetUserAsync(user); // Get the logged-in user's information
+            CurrentUser = await UserManager.GetUserAsync(user); 
             userPhotos[CurrentUser!.Id] = CurrentUser!.ProfilePhoto!;
         }
         isLoading = false;
@@ -233,14 +236,15 @@ else
             valReply = "";
         }
 
-        replyToComment = null;
-        replyButtonDisabled = false;
+
         newReply.PostId = PostId;
         newReply.ParentCommentId = replyToComment!.CommentId!;
         newReply.UserId = CurrentUser!.Id; 
         newReply.UserName = CurrentUser!.UserName; 
         await PostService.AddComment(newReply);
         await PostService.IncrementTotalComments(PostId);
+        replyToComment = null;
+        replyButtonDisabled = false;
         comments = await PostService.GetCommentsByPostId(PostId); 
         newReply = new Comment(); 
         

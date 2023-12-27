@@ -13,16 +13,21 @@ else
 {
     <div class="categories-container">
         <div class="category-list">
-            <div class="category @((string.IsNullOrEmpty(selectedCategoryId)) ? "selected-category" : "")">
-                <a href="@GetFilterUrl(null)">#All</a>
-            </div>
+            <a href="@GetFilterUrl(null)" style="text-decoration: none; color: inherit;">
+                <div class="category @((string.IsNullOrEmpty(selectedCategoryId)) ? "selected-category" : "")">
+                    #All
+                </div>
+            </a>
+            
             @if (categories != null)
             {
                 foreach (var category in categories)
                 {
-                    <div class="category @((selectedCategoryId == category.CategoryId.ToString()) ? "selected-category" : "")">
-                        <a href="@GetFilterUrl(category.CategoryId.ToString())">@category.CategoryHashTag</a>
-                    </div>
+                    <a href="@GetFilterUrl(category.CategoryId.ToString())" style="text-decoration: none;">
+                        <div class="category @((selectedCategoryId == category.CategoryId.ToString()) ? "selected-category" : "")">
+                            @category.CategoryHashTag
+                        </div>
+                    </a>
                 }
             }
         </div>

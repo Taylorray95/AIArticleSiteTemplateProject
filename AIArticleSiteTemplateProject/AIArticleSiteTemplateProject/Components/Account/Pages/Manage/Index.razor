@@ -194,22 +194,34 @@
             showError = true;
         }
     }
-
     private async Task ResetPhoto()
+{
+    try
     {
-        try
+        var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
+
+        // Check if current photo is not the default photo
+        if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != "https://newshog.blob.core.windows.net/profile-photos/default.png")
         {
-            user!.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
-            await UserManager.UpdateAsync(user);
-            imageUrl = user.ProfilePhoto;
-            statusMessage = "Profile photo reset to default.";
-            showError = false;
+            // Extract blob name from the URL and delete the photo
+            var currentBlobName = new Uri(user.ProfilePhoto).Segments.Last();
+            var currentBlobClient = blobContainer.GetBlobClient(currentBlobName);
+            await currentBlobClient.DeleteIfExistsAsync();
         }
-        catch (Exception ex)
-        {
-            statusMessage = $"Error resetting profile photo: {ex.Message}";
-            showError = true;
-        }
-        StateHasChanged();
+
+        // Reset the profile photo to default
+        user.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
+        await UserManager.UpdateAsync(user);
+        imageUrl = user.ProfilePhoto;
+        statusMessage = "Profile photo reset to default.";
+        showError = false;
     }
+    catch (Exception ex)
+    {
+        statusMessage = $"Error resetting profile photo: {ex.Message}";
+        showError = true;
+    }
+    StateHasChanged();
+}
+
 }

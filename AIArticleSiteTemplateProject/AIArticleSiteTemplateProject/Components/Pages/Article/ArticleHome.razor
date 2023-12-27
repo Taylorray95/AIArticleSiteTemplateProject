@@ -49,34 +49,18 @@ else
     public int PostId { get; set; }
     [Parameter]
     public string? PostShortTitle { get; set; }
-
     private ApplicationUser? CurrentUser { get; set; }
     private bool IsUserLoggedIn { get; set; }
-
-    private bool replyButtonDisabled = false;
-
-    private bool showCommentSection = false;
-    private bool showReplySection = false;
-
     private Post? post;
-    private List<Comment>? comments;
-    private Comment? replyToComment;
-    private Comment newComment = new Comment();
-    private Comment newReply = new Comment();
-
-    private string valReply = "";
-    private string valComment = "";
-
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
 
-            post = await PostService.GetPostById(PostId);
+        post = await PostService.GetPostById(PostId);
 
         await PostService.IncrementPageViews(PostId);
 
-
-            isLoading = false;
+        isLoading = false;
     }
 }

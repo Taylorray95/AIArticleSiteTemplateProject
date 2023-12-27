@@ -289,26 +289,26 @@ h3 {
     }
 
 .selected-category {
-    background-color: #2F80ED; /* A soft blue background */
-    color: white; /* White text for contrast */
-    border: 2px solid #2569B2; /* A slightly darker blue border for definition */
-    font-weight: bold; /* Make the category name bold */
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* A more subtle shadow for depth */
-    padding: 10px; /* Increase padding for a better visual effect */
-    border-radius: 5px; /* Rounded corners for a smoother look */
-    transition: background-color 0.3s, border-color 0.3s; /* Smooth transition for hover effect */
+    background-color: #2F80ED;
+    color: white;
+    border: 2px solid #2569B2; 
+    font-weight: bold;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); 
+    padding: 10px; 
+    border-radius: 5px; 
+    transition: background-color 0.3s, border-color 0.3s; 
 }
 
 .category a:hover,
 .category.selected-category a {
-    text-decoration: none; /* Remove the underline on hover */
-    color: white; /* Keep the text white on hover */
+    text-decoration: none; 
+    color: white;
 }
 
 .category:hover,
 .category.selected-category {
-    background-color: #4C8DF5; /* Lighter blue on hover for interactive feedback */
-    border-color: #2C6DB7; /* Slightly change border color on hover */
+    background-color: #4C8DF5; 
+    border-color: #2C6DB7; 
 }
 
 
@@ -408,3 +408,25 @@ a, .logout-link {
     align-items: center;
 }
 
+.button-reply-post,
+.button-reply-cancel {
+    display: inline-block; 
+    margin-right: 10px; 
+}
+
+.button-reply-post,
+.button-reply-cancel {
+    max-width: 150px; /* Control the width of the buttons */
+    margin: 0 auto; /* This will center the buttons if they are block elements */
+    display: block; /* This makes sure each button is on its own line */
+    margin-bottom: 10px; /* Adds some space between the buttons */
+}
+.button-reply-post,
+.button-reply-cancel {
+    padding: 10px 15px; /* Adjust padding to your preference */
+    border-radius: 5px; /* Rounded corners for the buttons */
+    font-size: 1em; /* Adjust font size as needed */
+    text-align: center; /* Center the text inside the buttons */
+    vertical-align: middle; /* Aligns the buttons if they are inline-block */
+    line-height: 1; /* This controls the height of the button content */
+}
