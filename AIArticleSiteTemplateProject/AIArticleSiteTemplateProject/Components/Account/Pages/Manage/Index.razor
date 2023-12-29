@@ -14,7 +14,7 @@
 @inject IJSRuntime JSRuntime
 @inject BlobServiceClientWrapper BlobServiceClientWrapper
 @inject NavigationManager NavigationManager
-
+@inject IConfiguration Config
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
@@ -96,7 +96,7 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var identityUser = authState.User;
         user = await UserManager.GetUserAsync(identityUser);
-        imageUrl = user!.ProfilePhoto ?? "https://newshog.blob.core.windows.net/profile-photos/default.png";
+        imageUrl = user!.ProfilePhoto ?? Config["ApplicationSettings:ApplicationDefaultProfilePhoto"];
         username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
         Input.PhoneNumber ??= phoneNumber;
@@ -166,7 +166,7 @@
                 var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
 
                 //delete old photo if it isn't the 'default' photo 
-                if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != "https://newshog.blob.core.windows.net/profile-photos/default.png")
+                if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != Config["ApplicationSettings:ApplicationDefaultProfilePhoto"])
                 {
                     // Extract blob name from the URL and delete the old photo
                     var oldBlobName = new Uri(user.ProfilePhoto).Segments.Last();
@@ -201,7 +201,7 @@
         var blobContainer = BlobServiceClientWrapper.GetBlobContainerClient("profile-photos");
 
         // Check if current photo is not the default photo
-        if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != "https://newshog.blob.core.windows.net/profile-photos/default.png")
+        if (!string.IsNullOrEmpty(user!.ProfilePhoto) && user.ProfilePhoto != Config["ApplicationSettings:ApplicationDefaultProfilePhoto"])
         {
             // Extract blob name from the URL and delete the photo
             var currentBlobName = new Uri(user.ProfilePhoto).Segments.Last();
@@ -210,7 +210,7 @@
         }
 
         // Reset the profile photo to default
-        user.ProfilePhoto = "https://newshog.blob.core.windows.net/profile-photos/default.png";
+        user.ProfilePhoto = Config["ApplicationSettings:ApplicationDefaultProfilePhoto"];
         await UserManager.UpdateAsync(user);
         imageUrl = user.ProfilePhoto;
         statusMessage = "Profile photo reset to default.";

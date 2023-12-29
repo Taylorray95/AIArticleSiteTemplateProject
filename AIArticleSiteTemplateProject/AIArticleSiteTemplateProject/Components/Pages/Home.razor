@@ -23,11 +23,14 @@ else
             {
                 foreach (var category in categories)
                 {
-                    <a href="@GetFilterUrl(category.CategoryId.ToString())" style="text-decoration: none;">
+                    @if (category.isActiveFlag)
+                    {
+                        <a href="@GetFilterUrl(category.CategoryId.ToString())" style="text-decoration: none;">
                         <div class="category @((selectedCategoryId == category.CategoryId.ToString()) ? "selected-category" : "")">
                             @category.CategoryHashTag
                         </div>
-                    </a>
+                        </a>
+                    }
                 }
             }
         </div>
