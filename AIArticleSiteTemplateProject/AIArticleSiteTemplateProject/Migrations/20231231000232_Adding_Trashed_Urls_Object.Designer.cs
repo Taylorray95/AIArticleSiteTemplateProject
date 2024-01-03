@@ -4,6 +4,7 @@ using AIArticleSiteTemplateProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AIArticleSiteTemplateProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231231000232_Adding_Trashed_Urls_Object")]
+    partial class Adding_Trashed_Urls_Object
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -210,9 +213,11 @@ namespace AIArticleSiteTemplateProject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image3")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image4")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PageViews")
@@ -265,30 +270,6 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DevBuild_PostStatuses", (string)null);
-                });
-
-            modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.TrashedUrl", b =>
-                {
-                    b.Property<int>("TrashedUrlId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TrashedUrlId"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SysDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TrashedLink")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("TrashedUrlId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("DevBuild_TrashedUrls", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -469,17 +450,6 @@ namespace AIArticleSiteTemplateProject.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("PostStatus");
-                });
-
-            modelBuilder.Entity("AIArticleSiteTemplateProject.Objects.TrashedUrl", b =>
-                {
-                    b.HasOne("AIArticleSiteTemplateProject.Objects.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

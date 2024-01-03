@@ -14,8 +14,8 @@ namespace AIArticleSiteTemplateProject.Objects
         public string? BodyImage { get; set; }
         public int? TotalComments { get; set; } = 0;
         public int? PageViews { get; set; } = 0;
-        public string Image3 { get; set; } = "";
-        public string Image4 { get; set; } = "";
+        public string? Image3 { get; set; } = "";
+        public string? Image4 { get; set; } = "";
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }

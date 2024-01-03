@@ -3,7 +3,7 @@
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Objects
 @rendermode InteractiveServer
-@attribute [StreamRendering(true)]
+@* @attribute [StreamRendering(true)] *@
 @inject ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
@@ -143,31 +143,56 @@ else
     private string validationMessage = "";
     private bool isLoading = true;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            isLoading = true;
-            categories = await DbContext.Categories.ToListAsync();
-            postStatuses = await DbContext.PostStatuses.ToListAsync();
-            post = await DbContext.Posts
-                                  .Include(p => p.Category)
-                                  .Include(p => p.PostStatus)
-                                  .FirstOrDefaultAsync(p => p.PostId == PostId);
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         isLoading = true;
+    //         categories = await DbContext.Categories.ToListAsync();
+    //         postStatuses = await DbContext.PostStatuses.ToListAsync();
+    //         post = await DbContext.Posts
+    //                               .Include(p => p.Category)
+    //                               .Include(p => p.PostStatus)
+    //                               .FirstOrDefaultAsync(p => p.PostId == PostId);
 
-            if (post != null)
-            {
-                articlesParsed = await DbContext.ArticleParsed
-                                                .Where(ap => ap.PostId == post.PostId)
-                                                .ToListAsync();
-            }
-            else
-            {
-                //NavigationManager.NavigateTo("/admin/");
-            }
-            isLoading = false;
-            StateHasChanged();
+    //         if (post != null)
+    //         {
+    //             articlesParsed = await DbContext.ArticleParsed
+    //                                             .Where(ap => ap.PostId == post.PostId)
+    //                                             .ToListAsync();
+    //         }
+    //         else
+    //         {
+    //             //NavigationManager.NavigateTo("/admin/");
+    //         }
+    //         isLoading = false;
+    //         StateHasChanged();
+    //     }
+    // }
+
+     protected override async Task OnInitializedAsync()
+    {
+
+        isLoading = true;
+        categories = await DbContext.Categories.ToListAsync();
+        postStatuses = await DbContext.PostStatuses.ToListAsync();
+        post = await DbContext.Posts
+                                .Include(p => p.Category)
+                                .Include(p => p.PostStatus)
+                                .FirstOrDefaultAsync(p => p.PostId == PostId);
+
+        if (post != null)
+        {
+            articlesParsed = await DbContext.ArticleParsed
+                                            .Where(ap => ap.PostId == post.PostId)
+                                            .ToListAsync();
         }
+        else
+        {
+            //NavigationManager.NavigateTo("/admin/");
+        }
+        isLoading = false;
+        
     }
 
     private void AddArticleParsed()

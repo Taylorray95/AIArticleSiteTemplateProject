@@ -47,6 +47,7 @@ namespace AIArticleSiteTemplateProject.Data
             builder.Entity<Post>().ToTable(tablePrefix + "Posts");
             builder.Entity<Comment>().ToTable(tablePrefix + "Comments");
             builder.Entity<ArticleParsed>().ToTable(tablePrefix + "ArticleParsed");
+            builder.Entity<TrashedUrl>().ToTable(tablePrefix + "TrashedUrls");
         }
 
     }
