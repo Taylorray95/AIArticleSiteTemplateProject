@@ -8,26 +8,30 @@
 }
 
 @media screen and (max-width: 600px) {
-    /* On small screens (smartphones), display 1 item per row */
+
     .news-grid {
         grid-template-columns: repeat(1, 1fr);
     }
 }
 
 @media screen and (min-width: 601px) and (max-width: 900px) {
-    /* On medium screens, display 2 items per row */
+
     .news-grid {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media screen and (min-width: 901px) {
-    /* On large screens, display 4 items per row */
+
     .news-grid {
         grid-template-columns: repeat(3, 1fr);
     }
 }
-
+@media screen and (min-width: 1600px) {
+    .news-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
 .last-row {
     justify-self: center;
 }
@@ -128,29 +132,50 @@
     margin-left: 30px;
 }
 
-.article {
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 2rem;
-    margin-bottom: 2rem;
-    max-width: 100%;
-}
+.responsive-image {
 
-.article-img {
-    max-width: 100%;
+    width: auto;
+    max-width: 100%; 
+    max-height: 100%; 
     height: auto;
-    margin-bottom: 1rem;
+    display: block; 
+    margin: 0 auto; 
+    object-fit: contain; 
 }
 
-.article-body {
-    margin: 0 auto;
-    max-width: 100%;
+.article {
     padding: 1rem;
-    border-radius: 5px;
-    background-color: #F9F9F9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.article-header {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.article-content {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .article {
+
+        margin: auto; 
+        max-width: none;
+    }
 }
 
 .date {
-    font-size: 0.8em; /* You can adjust the size as you wish. */
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.date {
+    font-size: 0.8em; 
     color: #666;
     margin-bottom: 1rem;
 }
@@ -174,11 +199,11 @@ p {
 
 textarea {
     width: 100%;
-    min-height: 100px; /* You can adjust this value as per your preference. */
+    min-height: 100px; 
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    resize: vertical; /* Allows the user to resize the textarea vertically. */
+    resize: vertical; 
 }
 
 button {
@@ -416,17 +441,22 @@ a, .logout-link {
 
 .button-reply-post,
 .button-reply-cancel {
-    max-width: 150px; /* Control the width of the buttons */
-    margin: 0 auto; /* This will center the buttons if they are block elements */
-    display: block; /* This makes sure each button is on its own line */
-    margin-bottom: 10px; /* Adds some space between the buttons */
+    max-width: 150px; 
+    margin: 0 auto; 
+    display: block; 
+    margin-bottom: 10px; 
 }
 .button-reply-post,
 .button-reply-cancel {
-    padding: 10px 15px; /* Adjust padding to your preference */
-    border-radius: 5px; /* Rounded corners for the buttons */
-    font-size: 1em; /* Adjust font size as needed */
-    text-align: center; /* Center the text inside the buttons */
-    vertical-align: middle; /* Aligns the buttons if they are inline-block */
-    line-height: 1; /* This controls the height of the button content */
+    padding: 10px 15px; 
+    border-radius: 5px; 
+    font-size: 1em; 
+    text-align: center;
+    vertical-align: middle; 
+    line-height: 1;
+}
+
+.number-input {
+    width: 50px; 
+    display: inline-block; 
 }
