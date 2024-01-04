@@ -27,8 +27,13 @@ else
             <p class="date">@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
         @if (!string.IsNullOrEmpty(post.PostBody))
         {
-           
-            <div>@post.PostBody</div>
+
+            <div>
+                @foreach (var line in post.PostBody.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+                {
+                    <text>@line<br /></text>
+                }
+            </div>
 
             <div style="margin: 20px 0;">
 
@@ -62,5 +67,7 @@ else
         await PostService.IncrementPageViews(PostId);
 
         isLoading = false;
+
+        Console.Write(post.PostBody);
     }
 }

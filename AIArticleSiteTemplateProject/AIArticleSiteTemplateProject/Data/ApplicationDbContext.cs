@@ -44,7 +44,15 @@ namespace AIArticleSiteTemplateProject.Data
             // Customizing table names for application-specific entities
             builder.Entity<PostStatus>().ToTable(tablePrefix + "PostStatuses");
             builder.Entity<Category>().ToTable(tablePrefix + "Categories");
-            builder.Entity<Post>().ToTable(tablePrefix + "Posts");
+            //builder.Entity<Post>().ToTable(tablePrefix + "Posts");
+            builder.Entity<Post>(entity =>
+            {
+                entity.ToTable(tablePrefix + "Posts");
+
+                // Configure the PostBody column to support multiline text (e.g., using TEXT in SQL Server)
+                entity.Property(p => p.PostBody).HasColumnType("VARCHAR(MAX)");
+            });
+
             builder.Entity<Comment>().ToTable(tablePrefix + "Comments");
             builder.Entity<ArticleParsed>().ToTable(tablePrefix + "ArticleParsed");
             builder.Entity<TrashedUrl>().ToTable(tablePrefix + "TrashedUrls");
