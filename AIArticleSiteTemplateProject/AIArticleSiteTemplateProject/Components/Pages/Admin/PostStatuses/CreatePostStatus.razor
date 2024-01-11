@@ -1,0 +1,87 @@
+﻿@page "/admin/poststatuses/createpoststatus"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<NavLink class="btn btn-link" href="/admin/poststatuses/">Go Back To Post Status Administration</NavLink>
+
+@if (!string.IsNullOrEmpty(validationMessage))
+{
+    <div class="alert alert-info">@validationMessage</div>
+}
+
+<EditForm Model="@newPostStatus" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="statusName">Status Name:</label>
+        <InputText id="statusName" class="form-control" @bind-Value="newPostStatus.StatusName" />
+    </div>
+
+    <div class="form-group">
+        <label for="statusDesc">Status Desc:</label>
+        <InputText id="statusDesc" class="form-control" @bind-Value="newPostStatus.StatusDesc" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Create Post Status</button>
+
+</EditForm>
+
+@code {
+    private PostStatus newPostStatus = new PostStatus();
+    private bool isLoading = true;
+    private string validationMessage = "";
+    private bool isActiveFlag = true;
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            DbContext.PostStatuses.Add(newPostStatus);
+            await DbContext.SaveChangesAsync();
+            validationMessage = "Successfully added the new post status.";
+
+            await Task.Delay(1000);
+
+            NavigationManager.NavigateTo("/admin/poststatuses/");
+
+            return;
+        }
+        catch (DbUpdateException ex)
+        {
+            validationMessage = "An error occurred while updating the database.";
+            Console.WriteLine("An error occurred while updating the database: " + ex.Message);
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            validationMessage = "An error occurred during submission.";
+            Console.WriteLine("An error occurred: " + ex.ToString());
+        }
+
+    }
+
+    private void ClearForm()
+    {
+        newPostStatus = new PostStatus();
+    }
+
+
+
+
+}

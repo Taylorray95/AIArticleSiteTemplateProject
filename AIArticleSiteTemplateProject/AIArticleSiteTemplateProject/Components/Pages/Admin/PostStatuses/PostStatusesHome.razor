@@ -1,0 +1,90 @@
+﻿@page "/admin/poststatuses"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+@if (!isLoading)
+{
+    <NavLink class="btn btn-link" href="/admin/poststatuses/createpoststatus">Create a New Post Status</NavLink>
+
+    @if (postStatuses != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        Status Name
+                    </th>
+                    <th>
+                        Status Description
+                    </th>
+                    <th>
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var status in postStatuses)
+                {
+                    <tr>
+                        <td>
+                            @status.Id
+                        </td>
+                        <td>
+                            @status.StatusName
+                        </td>
+                        <td>
+                            @status.StatusDesc
+                        </td>
+                       <td>
+                            <button @onclick="() => EditStatus(status.Id)">Edit</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+}
+else
+{
+    <duv>Loading...</duv>
+}
+
+@code {
+    private List<PostStatus>? postStatuses;
+    private bool isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            await LoadStatuses();
+            isLoading = false;
+            StateHasChanged();
+
+        }
+    }
+
+    private async Task LoadStatuses()
+    {
+        postStatuses = await DbContext.PostStatuses.ToListAsync();
+    }
+
+    private void EditStatus(int categoryId)
+    {
+        NavigationManager.NavigateTo($"/admin/PostStatuses/edit/{categoryId}");
+    }
+
+
+
+
+}

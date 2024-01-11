@@ -1,4 +1,4 @@
-﻿@page "/admin/categories/edit/{categoryId:int}"
+﻿@page "/admin/poststatuses/edit/{statusId:int}"
 @using AIArticleSiteTemplateProject.Data
 @using AIArticleSiteTemplateProject.Objects
 @rendermode InteractiveServer
@@ -20,32 +20,23 @@
 @if (!isLoading)
 {
 
-    <EditForm Model="selectedCategory" OnValidSubmit="HandleValidSubmit">
+    <EditForm Model="selectedStatus" OnValidSubmit="HandleValidSubmit">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div class="form-group">
-            <label for="categoryName">Category Name:</label>
-            <InputText id="categoryName" class="form-control" @bind-Value="selectedCategory!.CategoryName" />
+            <label for="statusName">Status Name:</label>
+            <InputText id="statusName" class="form-control" @bind-Value="selectedStatus!.StatusName" />
         </div>
 
         <div class="form-group">
-            <label for="categoryDesc">Category Description:</label>
-            <InputText id="categoryDesc" class="form-control" @bind-Value="selectedCategory!.CategoryDesc" />
+            <label for="statusDesc">Status Description:</label>
+            <InputText id="statusDesc" class="form-control" @bind-Value="selectedStatus!.StatusDesc" />
         </div>
 
-        <div class="form-group">
-            <label for="categoryHashTag">Category HashTag:</label>
-            <InputText id="categoryHashTag" class="form-control" @bind-Value="selectedCategory!.CategoryHashTag" />
-        </div>
-
-        <div class="form-group">
-            <label for="categoryStatus">Category Active/Inactive:</label>
-            <InputCheckbox id="categoryStatus" @bind-Value="isActiveFlag"></InputCheckbox>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Update Category</button>
-        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Category</button>
+ 
+        <button type="submit" class="btn btn-primary">Update Status</button>
+        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Status</button>
     </EditForm>
 }
 else
@@ -55,9 +46,9 @@ else
 @code{
 
     [Parameter]
-    public int categoryId {get; set;}
+    public int statusId {get; set;}
 
-    private Category? selectedCategory;
+    private PostStatus? selectedStatus;
     private ConfirmationDialog? confirmationDialog;
     private bool isLoading = true;
     private string? validationMessage = "";
@@ -68,8 +59,7 @@ else
         if (firstRender)
         {
             isLoading = true;
-            selectedCategory = await DbContext.Categories.FindAsync(categoryId);
-            isActiveFlag = selectedCategory!.isActiveFlag;
+            selectedStatus = await DbContext.PostStatuses.FindAsync(statusId);
             isLoading = false;
             StateHasChanged();
         }
@@ -77,21 +67,20 @@ else
 
     private async Task HandleValidSubmit()
     {
-        if (selectedCategory != null)
+        if (selectedStatus != null)
         {
             try
             {
-                selectedCategory.isActiveFlag = isActiveFlag;
-                DbContext.Categories.Update(selectedCategory);
+                DbContext.PostStatuses.Update(selectedStatus);
                 await DbContext.SaveChangesAsync();
 
-                validationMessage = "Successfully updated the category.";
+                validationMessage = "Successfully updated the post status.";
 
                 StateHasChanged();
 
                 await Task.Delay(1000);
 
-                NavigationManager.NavigateTo("/admin/categories/");
+                NavigationManager.NavigateTo("/admin/poststatuses/");
             }
             catch (Exception ex)
             {
@@ -103,34 +92,34 @@ else
 
     private void ShowDeleteConfirmation()
     {
-        confirmationDialog!.Show("Are you sure you want to delete this category?");
+        confirmationDialog!.Show("Are you sure you want to delete this post status?");
     }
 
     private async Task OnConfirmationChanged(bool confirmed)
     {
         if (confirmed)
         {
-            await DeletePost();
+            await DeletePostStatus();
         }
     }
 
-    private async Task DeletePost()
+    private async Task DeletePostStatus()
     {
-        if (selectedCategory != null)
+        if (selectedStatus != null)
         {
             try
             {
-                DbContext.Categories.Remove(selectedCategory);
+                DbContext.PostStatuses.Remove(selectedStatus);
                 await DbContext.SaveChangesAsync();
                 NavigationManager.NavigateTo("/admin/");
 
-                validationMessage = "Successfully deleted the category.";
+                validationMessage = "Successfully deleted the post status.";
 
                 StateHasChanged();
 
                 await Task.Delay(1000);
 
-                NavigationManager.NavigateTo("/admin/categories");
+                NavigationManager.NavigateTo("/admin/poststatuses");
 
                 return;
 
@@ -140,7 +129,7 @@ else
                 Console.WriteLine(ex.ToString());
             }
 
-            validationMessage = "Error Deleting the category..";
+            validationMessage = "Error Deleting the post status..";
             StateHasChanged();
         }
     }

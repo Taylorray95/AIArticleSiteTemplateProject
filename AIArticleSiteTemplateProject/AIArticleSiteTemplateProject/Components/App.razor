@@ -11,21 +11,27 @@
     <link rel="icon" type="image/png" href="news-hog-logo-transparent.png" />
     <HeadOutlet />
     <script>
+
         document.addEventListener('DOMContentLoaded', function () {
-            // temporarily addiing submit event listener to all forms (may change this)
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function (event) {
                     if (window.location.pathname === '/') {
                         saveScrollPosition('indexScrollPosition');
                     }
-                    // ... may add other conditions for different pages so can save the scroll position for other pages
                 });
             });
 
-            // restoring the scroll position specifically for index page
+            document.querySelectorAll('.input-dropdown').forEach(input => {
+                input.addEventListener('change', function () {
+                    if (window.location.pathname === '/') {
+                        saveScrollPosition('indexScrollPosition');
+                    }
+                    this.form.submit();
+                });
+            });
+
             restoreScrollPosition('indexScrollPosition');
         });
-
         function saveScrollPosition(key) {
             localStorage.setItem(key, window.scrollY || document.documentElement.scrollTop);
         }
@@ -87,12 +93,58 @@
             }
         }
     </script>
+    <script>
+        function resizeAndCropImage(file, callback) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onload = function () {
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = canvas.height = 400; // Target size
 
+                    // Calculate the position to draw the image at
+                    var startX = 0, startY = 0, sideLength = 0;
+
+                    if (img.width > img.height) {
+                        // Landscape
+                        sideLength = img.height;
+                        startX = (img.width - sideLength) / 2;
+                    } else {
+                        // Portrait
+                        sideLength = img.width;
+                        startY = (img.height - sideLength) / 2;
+                    }
+
+                    ctx.drawImage(img, startX, startY, sideLength, sideLength, 0, 0, 400, 400);
+                    callback(canvas.toDataURL()); // Get the data URL of the resized image
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('profilePhotoUpload').addEventListener('change', (event) => {
+                if (event.target.files.length > 0) {
+                    var file = event.target.files[0];
+                    resizeAndCropImage(file, (resizedDataURL) => {
+                        // Call a Blazor method to handle the resized image
+                        DotNet.invokeMethodAsync('YourAssemblyName', 'ReceiveResizedImage', resizedDataURL);
+                    });
+                }
+            });
+        });
+
+    </script>
 </head>
 
 <body>
     <Routes />
-    <script src="_framework/blazor.web.js"></script>
+  @*   <script src="_framework/blazor.web.js"></script> *@
+
+    <div id="reconnect-modal" style="display: none;"></div>
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script src="boot.js"></script>
 </body>
 
 </html>

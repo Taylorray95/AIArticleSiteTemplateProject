@@ -36,51 +36,34 @@ else
         </div>
     </div>
 
-
-@*   <div class="filter-container">
-        <h3>Trending Posts</h3>
-        <form method="get">
-            <div>
-                <label>Show: </label>
-                <input type="number" name="trendingAmount" class="input-dropdown" value="@TrendingPostSelectionNumberAmount" min="1" max="100" />
-
-                <label>From: </label>
-                <input type="number" name="trendingDays" class="input-dropdown" value="@TrendingPostSelectionDayAmount" min="1" max="365" />
-
-                @if (!string.IsNullOrEmpty(selectedCategoryId))
-                {
-                    <input type="hidden" name="category" value="@selectedCategoryId" />
-                }
-
-                <button type="submit" class="btn-submit">Update</button>
-            </div>
-        </form>
-    </div> *@
-
-    <div class="filter-container">
+     <div class="filter-container">
     <h3>Trending Posts</h3>
     <form method="get" id="trending-form">
-        <label>Show # of results: </label>
+        <label>Show: </label>
 
         <input type="number" name="trendingAmount" class="input-dropdown number-input" 
                value="@TrendingPostSelectionNumberAmount" 
                min="1" max="100" 
                onchange="document.getElementById('trending-form').submit();" />
 
-         <label># Days Old: </label>
+               
+               
+
+         <label>From the past: </label>
          <input type="number" name="trendingDays" class="input-dropdown number-input" 
                value="@TrendingPostSelectionDayAmount" 
                min="1" max="365" 
                onchange="document.getElementById('trending-form').submit();" />
+
         <label>Days</label>
                 @if (!string.IsNullOrEmpty(selectedCategoryId))
                 {
                     <input type="hidden" name="category" value="@selectedCategoryId" />
                 }
 
-                @*  <button type="submit" class="btn-submit">Update</button>  *@
+                  @* <button type="submit" class="btn-submit">Update</button>   *@
     </form>
-</div>
+</div> 
 
     @if (trendingPosts != null)
     {
@@ -101,26 +84,6 @@ else
             }
         </div>
     }
-@*  <div class="filter-container">
-        <h3>Recent Posts</h3>
-        <form method="get">
-            <div>
-                <label>Show: </label>
-                <input type="number" name="posts" class="input-dropdown" value="@RecentPostSelectingNumberAmount" min="1" max="100" />
-
-                @if (!string.IsNullOrEmpty(selectedCategoryId))
-                {
-                    <input type="hidden" name="category" value="@selectedCategoryId" />
-                }
-
-                <input type="hidden" name="trendingAmount" value="@TrendingPostSelectionNumberAmount" />
-                <input type="hidden" name="trendingDays" value="@TrendingPostSelectionDayAmount" />
-
-                <button type="submit" class="btn-submit">Update</button>
-            </div>
-        </form>
-    </div> *@
-
 
     <div class="filter-container">
     <h3>Recent Posts</h3>
@@ -130,6 +93,7 @@ else
                value="@RecentPostSelectingNumberAmount" 
                min="1" max="100" 
                onchange="document.getElementById('recent-form').submit();" />
+
          @if (!string.IsNullOrEmpty(selectedCategoryId))
                 {
                     <input type="hidden" name="category" value="@selectedCategoryId" />
@@ -138,7 +102,7 @@ else
                 <input type="hidden" name="trendingAmount" value="@TrendingPostSelectionNumberAmount" />
                 <input type="hidden" name="trendingDays" value="@TrendingPostSelectionDayAmount" />
 
-              @*  <button type="submit" class="btn-submit">Update</button>  *@
+             @*    <button type="submit" class="btn-submit">Update</button>   *@
     </form>
 </div>
     @if (recentPosts != null)

@@ -6,7 +6,16 @@
 
 </style>
 <div class="top-row-LoginDisplay">
-<AuthorizeView>
+
+<AuthorizeView Roles="SuperAdmin,Admin">
+    <Authorized>
+        <NavLink class="logout-link" href="/admin" style="margin-right:auto;padding-left: 15px;">
+           Administer
+        </NavLink>
+    </Authorized>
+</AuthorizeView>
+
+@* <AuthorizeView>
     <Authorized>
         <div class="">
                 <a href="/Account/Manage" class="logout-link">Hello, @context.User.Identity?.Name!</a>
@@ -21,7 +30,38 @@
             <a class="logout-link" href="/Account/Register" style="margin-right:15px">Register</a>
             <a class="logout-link" href="/Account/Login">Log in</a>
     </NotAuthorized>
-</AuthorizeView>
+</AuthorizeView> *@
+
+    <AuthorizeView>
+        <Authorized>
+            <div class="">
+                <NavLink class="logout-link" href="Account/Manage">
+                    <span class="logout-link" aria-hidden="true"></span> Manage Account
+                </NavLink>
+            </div>
+            <div class="">
+                <form action="Account/Logout" method="post">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                    <button type="submit" class="logout-link" style="margin-bottom:9px;">
+                        <span class="logout-link" aria-hidden="true"></span> Logout
+                    </button>
+                </form>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="">
+                <NavLink class="logout-link" href="Account/Register">
+                    <span class="logout-link" aria-hidden="true"></span> Register
+                </NavLink>
+            </div>
+            <div class="">
+                <NavLink class="logout-link" href="Account/Login">
+                    <span class="logout-link" aria-hidden="true"></span> Login
+                </NavLink>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
 
 @code {

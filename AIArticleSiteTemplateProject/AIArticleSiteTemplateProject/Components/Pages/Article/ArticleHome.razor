@@ -21,8 +21,11 @@ else if (post != null)
         <div class="article-header">
             <h1>@post.PostTitle</h1>
         </div>
+        @if (!string.IsNullOrWhiteSpace(post.HeaderImage))
+        {
+            <img class="responsive-image" src="@post.HeaderImage" alt="Header image" />
+        }
 
-        <img class="responsive-image" src="@post.HeaderImage" alt="Header image" />
 
 
         <div class="article-header">
