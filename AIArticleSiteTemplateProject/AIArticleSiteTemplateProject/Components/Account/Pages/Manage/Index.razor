@@ -18,6 +18,7 @@
 @using SixLabors.ImageSharp;
 @using SixLabors.ImageSharp.Processing;
 @using SixLabors.ImageSharp.Formats.Jpeg;
+@using ImageMagick;
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
@@ -66,7 +67,9 @@
         }
         <div class="form-floating mb-3">
         <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
-        <InputFile OnChange="OnInputFileChange" id="profilePhotoUpload" class="form-control" />
+
+      <InputFile OnChange="OnInputFileChange" id="profilePhotoUpload" class="form-control" />
+
 
         </div>
 
@@ -132,71 +135,40 @@
     }
 
 
-    // private async Task OnInputFileChange(InputFileChangeEventArgs e)
-    // {
-    //     var file = e.File;
-    //     if (file != null)
-    //     {
-    //         selectedFile = file; 
-
-    //         try
-    //         {
-    //             using var stream = file.OpenReadStream(5242880);
-    //             using var memoryStream = new MemoryStream();
-    //             await stream.CopyToAsync(memoryStream);
-    //             var buffer = memoryStream.ToArray();
-
-    //             var base64Image = $"data:image/jpeg;base64,{Convert.ToBase64String(buffer)}";
-    //             imageUrl = base64Image;
-    //             StateHasChanged();
-    //         }
-    //         catch (Exception)
-    //         {
-
-    //         }
-    //     }
-    // }
-
-//     private async Task OnInputFileChange(InputFileChangeEventArgs e)
-// {
-//     var file = e.File;
-//     if (file != null)
-//     {
-//         try
-//         {
-//             // Call the JavaScript function and wait for the result
-//             var resizedImageDataURL = await JSRuntime.InvokeAsync<string>(
-//                 "resizeAndCropImage", file);
-
-//             // Set the resized image as the new image URL
-//             imageUrl = resizedImageDataURL;
-//             StateHasChanged();
-//         }
-//         catch (Exception ex)
-//         {
-//             Console.WriteLine(ex.Message);
-//             // Handle exceptions
-//         }
-//     }
-// }
-private async Task OnInputFileChange(InputFileChangeEventArgs e)
-{
-    var file = e.File;
-    if (file != null)
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-        try
+        var file = e.File;
+        if (file != null)
         {
-            // Invoke the JavaScript function and get the resized image data URL
-            imageUrl = await JSRuntime.InvokeAsync<string>("resizeImage", file);
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            // Handle exceptions here
+            try
+            {
+                const long maxFileSize = 5000000; // 5 MB
+                using var stream = file.OpenReadStream(maxFileSize);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                memoryStream.Position = 0; // Reset the position of memoryStream
+
+                using var image = new MagickImage(memoryStream);
+
+                int maxWidth = 800;
+                int maxHeight = 600;
+                image.Resize(new MagickGeometry(maxWidth, maxHeight) { IgnoreAspectRatio = false });
+                image.Format = MagickFormat.Jpeg; // Convert to JPEG
+
+                using var outputStream = new MemoryStream();
+                image.Write(outputStream);
+                outputStream.Position = 0; // Reset the position of outputStream
+
+                var buffer = outputStream.ToArray();
+                var base64Image = $"data:image/jpeg;base64,{Convert.ToBase64String(buffer)}";
+                imageUrl = base64Image;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in OnInputFileChange: {ex.Message}");
+            }
         }
     }
-}
 
     private async Task SavePhoto()
 {
