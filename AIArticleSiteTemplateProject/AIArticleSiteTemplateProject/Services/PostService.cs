@@ -15,15 +15,19 @@ namespace AIArticleSiteTemplateProject.Services
 
         public async Task<List<Post>> GetRecentPosts(int amountToReturn)
         {
-            return await _context.Posts.OrderByDescending(p => p.PostSysDate).Take(amountToReturn).ToListAsync();
+            return await _context.Posts
+                .Where(p => p.StatusId == 1)
+                .OrderByDescending(p => p.PostSysDate)
+                .Take(amountToReturn)
+                .ToListAsync();
         }
 
         public async Task<Post> GetPostById(int id)
         {
-            //return await _context!.Posts.Where(p => p.PostId == id).FirstOrDefaultAsync();
-            var post = await _context!.Posts.Where(p => p.PostId == id).FirstOrDefaultAsync()!;
+            var post = await _context!.Posts
+                .Where(p => p.PostId == id)
+                .FirstOrDefaultAsync()!;
             return post!;
-
         }
 
 
@@ -82,7 +86,7 @@ namespace AIArticleSiteTemplateProject.Services
             var dateLimit = DateTime.Now.AddDays(-daysToGoBack); // posts from the last 45 days
 
             return await _context.Posts
-                .Where(p => p.PostSysDate >= dateLimit)
+                .Where(p => p.PostSysDate >= dateLimit && p.StatusId == 1)
                 .OrderByDescending(p => p.PageViews + (p.TotalComments * 2))
                 .Take(amountToReturn)
                 .ToListAsync();
@@ -91,14 +95,14 @@ namespace AIArticleSiteTemplateProject.Services
         public async Task<List<Post>> GetPostsByCategory(int categoryId)
         {
             return await _context.Posts
-                                 .Where(p => p.CategoryId == categoryId)
+                                 .Where(p => p.CategoryId == categoryId && p.StatusId == 1)
                                  .ToListAsync();
         }
 
         public async Task<List<Post>> GetRecentPostsByCategory(int amountToReturn, int categoryId)
         {
             return await _context.Posts
-                                 .Where(p => p.CategoryId == categoryId)
+                                 .Where(p => p.CategoryId == categoryId && p.StatusId == 1)
                                  .OrderByDescending(p => p.PostSysDate)
                                  .Take(amountToReturn)
                                  .ToListAsync();
@@ -109,7 +113,7 @@ namespace AIArticleSiteTemplateProject.Services
             var dateLimit = DateTime.Now.AddDays(-daysToGoBack); // posts from the last 45 days
 
             return await _context.Posts
-                                 .Where(p => p.CategoryId == categoryId && p.PostSysDate >= dateLimit)
+                                 .Where(p => p.CategoryId == categoryId && p.PostSysDate >= dateLimit && p.StatusId == 1)
                                  .OrderByDescending(p => p.PageViews + (p.TotalComments * 2))
                                  .Take(amountToReturn)
                                  .ToListAsync();

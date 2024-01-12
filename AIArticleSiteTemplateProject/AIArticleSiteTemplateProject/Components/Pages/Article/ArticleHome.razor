@@ -16,6 +16,15 @@
 }
 else if (post != null)
 {
+    <AuthorizeView Roles="SuperAdmin,Admin">
+        <Authorized>
+            <div class="d-flex justify-content-end">
+                <a class="btn btn-outline-primary" href="/admin/posts/edit/@PostId">Edit Post</a>
+            </div>
+            <hr>
+        </Authorized>
+    </AuthorizeView>
+
     <div class="article">
 
         <div class="article-header">

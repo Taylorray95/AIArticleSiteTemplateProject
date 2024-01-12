@@ -6,6 +6,7 @@
 @inject ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
+@using System.Linq.Expressions
 
 
 
@@ -17,6 +18,7 @@
     <br />
     @if (categories != null)
     {
+        <button @onclick="() => FilterByCategory(null)">Show All</button>
         @foreach (var category in categories)
         {
             @if (category.isActiveFlag == true)
@@ -33,13 +35,20 @@
                 <th>Category</th>
                 <th>Short Title</th>
                 <th>Title</th>
-                <th>Posted Date</th>
-                <th>Last Updated</th>
+                 <th>
+                Posted Date
+                <button @onclick='() => SortPosts("PostSysDate")'>⇅</button>
+            </th>
+            <th>
+                Last Updated
+                <button @onclick='() => SortPosts("PostLastUpdated")'>⇅</button>
+            </th>
+
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var post in posts)
+            @foreach (var post in posts!)
             {
                 <tr>
                     <td>@post.PostId</td>
@@ -57,11 +66,21 @@
         </tbody>
     </table>
 
-    <div class="pagination">
+@*     <div class="pagination">
         <button @onclick="PreviousPage" disabled="@(_currentPage == 1)">Previous</button>
         <span>Page @_currentPage of @_totalPages</span>
         <button @onclick="NextPage" disabled="@(_currentPage == _totalPages)">Next</button>
-    </div>
+    </div> *@
+    <ul class="pagination">
+    @for (var i = 1; i <= _totalPages; i++)
+    {
+        var localPage = i; // Local copy to avoid closure issue in loop
+        <li class="page-item @(localPage == _currentPage ? "active" : "")">
+            <button class="page-link" @onclick="() => ChangePage(localPage)">@localPage</button>
+        </li>
+    }
+</ul>
+
 }
 else
 {
@@ -72,24 +91,58 @@ else
     private List<Post>? posts;
     private List<Category>? categories;
     private int _currentPage = 1;
-    private const int PageSize = 50;
+    private const int PageSize = 20;
     private int _totalPages = 0;
     private bool isLoading = true;
+    private bool sortAscending = true;
+    private string? currentSortColumn;
+    private int? currentCategoryId;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         isLoading = true;
+    //         categories = await DbContext.Categories.ToListAsync();
+    //         await LoadPosts();
+    //         isLoading = false;
+    //         StateHasChanged();
+    //     }
+    // }
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            isLoading = true;
-            categories = await DbContext.Categories.ToListAsync();
-            await LoadPosts();
-            isLoading = false;
-            StateHasChanged();
-        }
+        isLoading = true;
+        categories = await DbContext.Categories.ToListAsync();
+        await LoadPosts(null, 1);
+        isLoading = false;
     }
 
+    // private async Task LoadPosts(int? categoryId = null)
+    // {
+    //     var query = DbContext.Posts.Include(p => p.Category).AsQueryable();
 
-    private async Task LoadPosts(int? categoryId = null)
+    //     if (categoryId.HasValue)
+    //     {
+    //         query = query.Where(p => p.CategoryId == categoryId.Value);
+    //     }
+
+    //     if (!string.IsNullOrEmpty(currentSortColumn))
+    //     {
+    //         var parameter = Expression.Parameter(typeof(Post), "p");
+    //         var property = Expression.Property(parameter, currentSortColumn);
+    //         var lambda = Expression.Lambda(property, parameter);
+            
+    //         query = sortAscending
+    //             ? query.Provider.CreateQuery<Post>(Expression.Call(typeof(Queryable), "OrderBy", new Type[] { typeof(Post), property.Type }, query.Expression, Expression.Quote(lambda)))
+    //             : query.Provider.CreateQuery<Post>(Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { typeof(Post), property.Type }, query.Expression, Expression.Quote(lambda)));
+    //     }
+
+    //     var totalPosts = await query.CountAsync();
+    //     _totalPages = (int)Math.Ceiling(totalPosts / (double)PageSize);
+    //     posts = await query.Skip((PageSize * (_currentPage - 1))).Take(PageSize).ToListAsync();
+    // }
+
+    private async Task LoadPosts(int? categoryId = null, int? page = 1)
     {
         var query = DbContext.Posts.Include(p => p.Category).AsQueryable();
 
@@ -98,36 +151,71 @@ else
             query = query.Where(p => p.CategoryId == categoryId.Value);
         }
 
-        var totalPosts = await query.CountAsync();
-        _totalPages = (int)Math.Ceiling(totalPosts / (double)PageSize);
-        posts = await query.Skip((PageSize * (_currentPage - 1))).Take(PageSize).ToListAsync();
-    }
-
-
-    private async Task FilterByCategory(int categoryId)
-    {
-        _currentPage = 1;
-        await LoadPosts(categoryId);
-    }
-
-
-    private async Task NextPage()
-    {
-        if (_currentPage < _totalPages)
+        if (!string.IsNullOrEmpty(currentSortColumn))
         {
-            _currentPage++;
-            await LoadPosts();
+            var parameter = Expression.Parameter(typeof(Post), "p");
+            var property = Expression.Property(parameter, currentSortColumn);
+            var lambda = Expression.Lambda(property, parameter);
+        
+            query = sortAscending
+                ? query.Provider.CreateQuery<Post>(Expression.Call(typeof(Queryable), "OrderBy", new Type[] { typeof(Post), property.Type }, query.Expression, Expression.Quote(lambda)))
+                : query.Provider.CreateQuery<Post>(Expression.Call(typeof(Queryable), "OrderByDescending", new Type[] { typeof(Post), property.Type }, query.Expression, Expression.Quote(lambda)));
         }
+
+        var totalItems = await query.CountAsync();
+        _totalPages = (int)Math.Ceiling((double)totalItems / PageSize);
+    
+        var skipAmount = (_currentPage - 1) * PageSize;
+
+        posts = await query.Skip(skipAmount).Take(PageSize).ToListAsync();
     }
 
-    private async Task PreviousPage()
+
+    private async Task FilterByCategory(int? categoryId)
     {
-        if (_currentPage > 1)
-        {
-            _currentPage--;
-            await LoadPosts();
-        }
+    currentCategoryId = categoryId;
+    _currentPage = 1;
+    await LoadPosts(currentCategoryId);
     }
+
+    private async Task ChangePage(int page)
+{
+    _currentPage = page;
+    await LoadPosts(currentCategoryId);
+}
+private async Task NextPage()
+{
+    if (_currentPage < _totalPages)
+    {
+        await ChangePage(_currentPage + 1);
+    }
+}
+
+private async Task PreviousPage()
+{
+    if (_currentPage > 1)
+    {
+        await ChangePage(_currentPage - 1);
+    }
+}
+
+    // private async Task NextPage()
+    // {
+    //     if (_currentPage < _totalPages)
+    //     {
+    //         _currentPage++;
+    //         await LoadPosts();
+    //     }
+    // }
+
+    // private async Task PreviousPage()
+    // {
+    //     if (_currentPage > 1)
+    //     {
+    //         _currentPage--;
+    //         await LoadPosts();
+    //     }
+    // }
 
     private void ViewPost(int postId)
     {
@@ -139,8 +227,19 @@ else
         NavigationManager.NavigateTo($"/admin/posts/edit/{postId}");
     }
 
-    private void DeletePost(int postId)
+    private async Task SortPosts(string columnName)
+{
+    if (currentSortColumn == columnName)
     {
-        
+        sortAscending = !sortAscending;
     }
+    else
+    {
+        currentSortColumn = columnName;
+        sortAscending = true;
+    }
+
+    await LoadPosts(currentCategoryId);
+}
+
 }

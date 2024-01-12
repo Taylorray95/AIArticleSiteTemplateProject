@@ -2,14 +2,39 @@
 
 <div class="d-flex flex-column align-items-center">
 
-    <NavLink class="btn btn-link" href="/admin/posts/">Manage Posts</NavLink>
-    <br /><br />
-    <NavLink class="btn btn-link" href="/admin/categories/">Manage Categories</NavLink>
-    <br />
-    <br />
-    <NavLink class="btn btn-link" href="/admin/users/">Manage Users</NavLink>
-    <br />
-    <br />
-    <NavLink class="btn btn-link" href="/admin/PostStatuses">Manage Post Statuses</NavLink>
+    <AuthorizeView Roles="SuperAdmin">
+        <Authorized>
+            <NavLink class="btn btn-link" href="/admin/posts/">Manage Posts</NavLink>
+        </Authorized>
+    </AuthorizeView>
 
+    <br />
+    <br />
+
+    <AuthorizeView Roles="SuperAdmin">
+        <Authorized>
+            <NavLink class="btn btn-link" href="/admin/categories/">Manage Categories</NavLink>
+        </Authorized>
+    </AuthorizeView>
+    <br />
+    <br />
+
+   <AuthorizeView Roles="SuperAdmin">
+        <Authorized>
+            <NavLink class="btn btn-link" href="/admin/users/">Manage Users</NavLink>
+        </Authorized>
+    </AuthorizeView>
+
+    <br />
+    <br />
+
+    <AuthorizeView Roles="SuperAdmin">
+        <Authorized>
+            <NavLink class="btn btn-link" href="/admin/PostStatuses">Manage Post Statuses</NavLink>
+        </Authorized>
+
+        <NotAuthorized>
+            You need to request 'SuperAdmin' rights in order to manage categories, users, and post statuses 
+        </NotAuthorized>
+    </AuthorizeView>
 </div>

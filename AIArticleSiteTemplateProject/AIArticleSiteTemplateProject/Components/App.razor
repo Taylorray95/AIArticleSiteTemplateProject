@@ -63,6 +63,16 @@
         window.scrollToBottom = () => {
             window.scrollTo(0, document.body.scrollHeight);
         }
+
+        window.scrollToTop = () => {
+            window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+            });
+        };
+
+
     </script>
     <script>
         window.initializeCommentListener = () => {
