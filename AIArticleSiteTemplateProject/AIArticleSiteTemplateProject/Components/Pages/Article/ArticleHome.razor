@@ -92,13 +92,27 @@ else if (post != null)
 
     protected override async Task OnInitializedAsync()
     {
-
         post = await PostService.GetPostById(PostId);
 
-        await PostService.IncrementPageViews(PostId);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        CurrentUser = await UserManager.GetUserAsync(authState.User);
+
+        if (CurrentUser != null)
+        {
+            var roles = await UserManager.GetRolesAsync(CurrentUser);
+
+            if (!roles.Contains("SuperAdmin"))
+            {
+                await PostService.IncrementPageViews(PostId);
+            }
+        }
+        else
+        {
+            await PostService.IncrementPageViews(PostId);
+        }
 
         isLoading = false;
-
         Console.Write(post.PostBody);
     }
+
 }
