@@ -32,6 +32,9 @@
         <thead>
             <tr>
                 <th>Post ID</th>
+                <th>Status ID
+                     <button @onclick='() => SortPosts("StatusId")'>⇅</button>
+                </th>
                 <th>Category</th>
                 <th>Short Title</th>
                 <th>Title</th>
@@ -52,6 +55,7 @@
             {
                 <tr>
                     <td>@post.PostId</td>
+                    <td>@post.StatusId</td>
                     <td>@post.Category?.CategoryName</td> 
                     <td>@post.PostShortTitle</td>
                     <td>@post.PostTitle</td>

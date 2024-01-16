@@ -27,17 +27,17 @@
 
         <div class="form-group">
             <label for="postTitle">Post Title:</label>
-            <InputText id="postTitle" class="form-control" @bind-Value="post.PostTitle" />
+            <InputTextArea  id="postTitle" class="form-control" @bind-Value="post!.PostTitle" />
         </div>
 
         <div class="form-group">
             <label for="postShortTitle">Post Short Title:</label>
-            <InputText id="postShortTitle" class="form-control" @bind-Value="post.PostShortTitle" />
+            <InputTextArea  id="postShortTitle" class="form-control" @bind-Value="post.PostShortTitle" />
         </div>
 
         <div class="form-group">
             <label for="postBody">Post Body:</label>
-            <InputText id="postBody" class="form-control" @bind-Value="post.PostShortTitle" />
+            <InputTextArea  id="postBody" rows="10" class="form-control" @bind-Value="post.PostBody" />
         </div>
 
         <div class="form-group">
