@@ -68,7 +68,7 @@
         <div class="form-floating mb-3">
         <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
 
-      <InputFile OnChange="OnInputFileChange" id="profilePhotoUpload" class="form-control" />
+        <InputFile OnChange="OnInputFileChange" id="profilePhotoUpload" class="form-control" />
 
 
         </div>
@@ -82,7 +82,21 @@
     </div>
 </div>
 
+@if (isProcessingFile)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <p>Loading...</p>
+                    <img src="./loading-gif.webp" style="width:200px" alt="Loading" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
+<img src="~/loading-gif.webp" />
 @code {
     private string statusMessage = "";
     private bool showError = false;
@@ -91,6 +105,7 @@
     private string? phoneNumber;
     private string? imageUrl;
     private IBrowserFile? selectedFile;
+    private bool isProcessingFile = false;
 
 
 
@@ -137,6 +152,9 @@
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
+        isProcessingFile = true;
+        StateHasChanged();
+
         var file = e.File;
         if (file != null)
         {
@@ -166,8 +184,12 @@
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception in OnInputFileChange: {ex.Message}");
+                statusMessage = "Error with that photo... Please try again. Or try using another photo.... ";
             }
         }
+
+        isProcessingFile = false;
+        StateHasChanged();
     }
 
     private async Task SavePhoto()
