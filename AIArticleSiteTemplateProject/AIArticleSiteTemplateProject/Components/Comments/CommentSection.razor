@@ -7,7 +7,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 @inject NavigationManager NavManager
-
+@using AIArticleSiteTemplateProject.Components.Reusable
 
 @if (isLoading || comments is null)
 {
@@ -52,20 +52,28 @@ else
             @foreach (var comment in comments)
             {
                 <div class="comment">
-                    <div class="profile-section" @onclick="() => NavigateToProfile(comment.UserName)">
-                        @if (userPhotos.ContainsKey(comment!.UserId))
+                    <div class="profile-section" @onclick="() => NavigateToProfile(comment.UserName!)">
+                        @if (userPhotos.ContainsKey(comment!.UserId!))
                         {
                             <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[comment.UserId]" />
                         }
                         <p class="username" style="cursor:pointer;">@comment.UserName</p>
                     </div>
                     <p class="comment-body">@comment.CommentBody</p>
+
+                   
                     <p class="comment-date">Posted on: @comment.CommentSysDate</p>
 
                     @if (IsUserLoggedIn && comment.ParentCommentId == null)
                     {
                         <button disabled="@replyButtonDisabled" @onclick="() => BeginReply(comment)">Reply</button>
                     }
+
+                     @if (IsUserLoggedIn && comment.UserId == CurrentUser!.Id)
+                    {
+                        <button class="btn btn-danger btn-sm" @onclick="() => ShowDeleteConfirmation(comment.CommentId)">Delete</button>
+                    }
+
 
                     @if (comment.Replies != null && comment.Replies.Any())
                     {
@@ -87,9 +95,9 @@ else
                                 {
                                    <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName!)">
                                         <div class="profile-section">
-                                            @if (userPhotos.ContainsKey(reply!.UserId))
+                                            @if (userPhotos.ContainsKey(reply!.UserId!))
                                             {
-                                                <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[reply.UserId]" />
+                                                <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[reply.UserId!]" />
                                             }
                                             <p class="username" style="cursor:pointer;">@reply.UserName</p>
                                         </div>
@@ -124,7 +132,7 @@ else
 
 }
     
-
+<ConfirmationDialog @ref="confirmationModal" ConfirmationChanged="OnConfirmation" />
 
 @code {
     [Parameter]
@@ -156,6 +164,11 @@ else
     private Dictionary<string, string> userPhotos = new Dictionary<string, string>();
 
     private HashSet<int> shownReplies = new HashSet<int>();
+
+    private ConfirmationDialog? confirmationModal;
+
+    private int pendingDeleteCommentId;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -301,5 +314,26 @@ else
     {
         NavManager.NavigateTo($"/profile/{username}");
     }
+
+    private async Task DeleteComment(int commentId)
+    {
+        await PostService.DeleteComment(commentId);
+        comments = await PostService.GetCommentsByPostId(PostId);
+    }
+
+       private void ShowDeleteConfirmation(int commentId)
+    {
+        pendingDeleteCommentId = commentId;
+        confirmationModal!.Show($"Are you sure you want to delete this comment?");
+    }
+
+    private async Task OnConfirmation(bool confirmed)
+    {
+        if (confirmed)
+        {
+            await DeleteComment(pendingDeleteCommentId);
+        }
+    }
+
 
 }

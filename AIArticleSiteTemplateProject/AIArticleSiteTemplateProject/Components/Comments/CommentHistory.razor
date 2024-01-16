@@ -128,7 +128,7 @@ else
         }
     }
 
-     private void ShowDeleteConfirmation(int commentId)
+    private void ShowDeleteConfirmation(int commentId)
     {
         pendingDeleteCommentId = commentId;
         confirmationModal!.Show($"Are you sure you want to delete this comment?");
@@ -144,27 +144,41 @@ else
 
     public async Task DeleteComment(int commentId)
     {
-        var comment = await DbContext.Comments.FindAsync(commentId);
-        if (comment == null)
-        {
-            return;
-        }
+        // var comment = await DbContext.Comments.FindAsync(commentId);
+        // if (comment == null)
+        // {
+        //     return;
+        // }
 
-        DbContext.Comments.Remove(comment);
-        var result = await DbContext.SaveChangesAsync();
+        // DbContext.Comments.Remove(comment);
+        // var result = await DbContext.SaveChangesAsync();
 
-        if (result > 0)
-        {
+        // await PostService.DecrementTotalComments(comment.PostId);
+
+        // if (result > 0)
+        // {
+        //     await LoadCommentsPage(currentPage);
+        //     valMessageSuccess = "Comment deleted successfully.";
+        //     valMessageError = "";
+        // }
+        // else
+        // {
+        //     valMessageError = "An error occurred while deleting the comment.";
+        //     valMessageSuccess = "";
+        // }
+
+        try {
+            await PostService.DeleteComment(commentId);
             await LoadCommentsPage(currentPage);
             valMessageSuccess = "Comment deleted successfully.";
             valMessageError = "";
         }
-        else
+        catch (Exception ex)
         {
+            Console.WriteLine(ex.ToString());
             valMessageError = "An error occurred while deleting the comment.";
             valMessageSuccess = "";
         }
-
     }
 
 

@@ -99,15 +99,15 @@
             <InputText id="Image4" class="form-control" @bind-Value="post.Image4" />
         </div>
 
-        @* <div class="form-group">
+        <div class="form-group">
             <label for="totalComments">Total Comments:</label>
-            <InputText id="totalComments" class="form-control" @bind-Value="post.TotalComments" disabled />
+            <InputText id="totalComments" class="form-control" @bind-Value="totalCommentsText"  />
         </div>
 
         <div class="form-group">
             <label for="pageViews">Page Views:</label>
-            <InputText id="pageViews" class="form-control" @bind-Value="post.PageViews" disabled />
-        </div> *@
+            <InputText id="pageViews" class="form-control" @bind-Value="pageViewsText"  />
+        </div>
 
 
         <h3>Articles Parsed</h3>
@@ -142,6 +142,9 @@ else
     private string validationMessage = "";
     private bool isLoading = true;
 
+    private string? totalCommentsText;
+    private string? pageViewsText;
+
      protected override async Task OnInitializedAsync()
     {
 
@@ -167,6 +170,11 @@ else
         
     }
 
+    protected override void OnParametersSet()
+    {
+        totalCommentsText = post!.TotalComments?.ToString() ?? "";
+        pageViewsText = post.PageViews?.ToString() ?? "";
+    }
     private void AddArticleParsed()
     {
         articlesParsed.Add(new ArticleParsed { PostId = PostId });
@@ -183,6 +191,14 @@ else
         {
             try
             {
+                post.TotalComments = string.IsNullOrWhiteSpace(totalCommentsText) 
+                                     ? (int?)null 
+                                     : int.Parse(totalCommentsText);
+
+                post.PageViews = string.IsNullOrWhiteSpace(pageViewsText) 
+                                 ? (int?)null 
+                                 : int.Parse(pageViewsText);
+
                 DbContext.Posts.Update(post);
                 await DbContext.SaveChangesAsync();
 

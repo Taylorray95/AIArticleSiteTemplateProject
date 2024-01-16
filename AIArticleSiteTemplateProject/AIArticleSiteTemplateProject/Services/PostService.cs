@@ -126,6 +126,23 @@ namespace AIArticleSiteTemplateProject.Services
                 .OrderByDescending(c => c.CommentSysDate);
         }
 
+        public async Task DeleteComment(int commentId)
+        {
+            var comment = await _context.Comments.Include(c => c.Replies).FirstOrDefaultAsync(c => c.CommentId == commentId);
 
+            if (comment == null)
+            {
+                throw new ArgumentException("Comment not found");
+            }
+
+            _context.Comments.RemoveRange(comment.Replies!);
+            _context.Comments.Remove(comment);
+
+            await DecrementTotalComments(comment.PostId);
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        }
     }
-}
