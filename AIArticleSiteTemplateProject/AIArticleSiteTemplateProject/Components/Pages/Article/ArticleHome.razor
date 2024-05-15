@@ -1,0 +1,118 @@
+﻿@page "/article/{PostId:int}/{PostShortTitle}"
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Data
+
+@inject Services.PostService PostService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+<PageTitle>@post?.PostTitle</PageTitle>
+
+@if (isLoading)
+{
+    <div>Loading..</div>
+}
+else if (post != null)
+{
+    <AuthorizeView Roles="SuperAdmin,Admin">
+        <Authorized>
+            <div class="d-flex justify-content-end">
+                <a class="btn btn-outline-primary" href="/admin/posts/edit/@PostId">Edit Post</a>
+            </div>
+            <hr>
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="article">
+
+        <div class="article-header">
+            <h1>@post.PostTitle</h1>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(post.HeaderImage))
+        {
+            <img class="responsive-image" src="@post.HeaderImage" alt="Header image" />
+        }
+
+
+
+        <div class="article-header">
+            <p class="date">@post.PostSysDate?.ToString("MMMM dd, yyyy")</p>
+        </div>
+
+        <div class="article-content">
+
+            @if (!string.IsNullOrEmpty(post.PostBody))
+            {
+                var bodyParagraphs = post.PostBody.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToList();
+
+                // Find the middle index to place the body image
+                int middleIndex = bodyParagraphs.Count / 2;
+
+                if (bodyParagraphs.Count > 1 && !string.IsNullOrWhiteSpace(post.BodyImage))
+                {
+                    // Insert the body image at the middle index
+                    bodyParagraphs.Insert(middleIndex, $"<img style='margin-bottom:10px;' src='{post.BodyImage}' alt='Body image' class='responsive-image' />");
+                }
+                <br />
+                <div class="article-text">
+                    @foreach (var paragraph in bodyParagraphs)
+                    {
+                        if (paragraph.StartsWith("<img"))
+                        {
+                            // Use MarkupString to render the image HTML safely
+                            <div>@((MarkupString)paragraph)</div>
+                        }
+                        else
+                        {
+                            <p>@((MarkupString)paragraph)</p>
+                        }
+                    }
+                </div>
+            }
+
+       
+        </div>
+    </div>
+
+    <AIArticleSiteTemplateProject.Components.Comments.CommentSection PostId="@PostId" />
+}
+
+@code{
+
+    [Parameter]
+    public int PostId { get; set; }
+    [Parameter]
+    public string? PostShortTitle { get; set; }
+    private ApplicationUser? CurrentUser { get; set; }
+    private bool IsUserLoggedIn { get; set; }
+    private Post? post;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        post = await PostService.GetPostById(PostId);
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        CurrentUser = await UserManager.GetUserAsync(authState.User);
+
+        if (CurrentUser != null)
+        {
+            var roles = await UserManager.GetRolesAsync(CurrentUser);
+
+            if (!roles.Contains("SuperAdmin"))
+            {
+                await PostService.IncrementPageViews(PostId);
+            }
+        }
+        else
+        {
+            await PostService.IncrementPageViews(PostId);
+        }
+
+        isLoading = false;
+        Console.Write(post.PostBody);
+    }
+
+}

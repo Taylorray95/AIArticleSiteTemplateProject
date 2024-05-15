@@ -1,0 +1,49 @@
+﻿@rendermode InteractiveServer
+
+@if (ShowConfirmation)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmation</h5>
+                    <button type="button" class="btn-close" @onclick="() => Confirm(false)"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@Message</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => Confirm(false)">Cancel</button>
+                    <button class="btn btn-danger" @onclick="() => Confirm(true)">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    public bool ShowConfirmation { get; set; }
+    public string Message { get; set; } = "Are you sure you want to proceed?";
+    [Parameter]
+    public EventCallback<bool> ConfirmationChanged { get; set; }
+
+    public void Show(string message)
+    {
+        Message = message;
+        ShowConfirmation = true;
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        ShowConfirmation = false;
+        StateHasChanged();
+    }
+
+    private void Confirm(bool confirmed)
+    {
+        Hide();
+        ConfirmationChanged.InvokeAsync(confirmed);
+    }
+}

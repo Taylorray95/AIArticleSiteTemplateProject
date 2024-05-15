@@ -1,0 +1,178 @@
+﻿@page "/admin/posts/createpost"
+
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+
+<NavLink class="btn btn-link" href="/admin/posts/">Go Back To Post Administration</NavLink>
+
+@if (!isLoading)
+{
+    @if (!string.IsNullOrEmpty(validationMessage))
+    {
+        <div class="alert alert-info">@validationMessage</div>
+    }
+<br />
+
+<EditForm Model="@post" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="postTitle">Post Title:</label>
+        <InputText id="postTitle" class="form-control" @bind-Value="post.PostTitle" />
+    </div>
+
+    <div class="form-group">
+        <label for="postShortTitle">Post Short Title:</label>
+        <InputText id="postShortTitle" class="form-control" @bind-Value="post.PostShortTitle" />
+    </div>
+
+    <div class="form-group">
+        <label for="postBody">Post Body:</label>
+        <InputTextArea id="postBody" class="form-control" @bind-Value="post.PostBody" />
+    </div>
+
+    <div class="form-group">
+        <label for="postCategory">Post Category:</label>
+        <InputSelect id="postCategory" class="form-control" @bind-Value="post.CategoryId">
+            <option value="">Select a Category</option>
+            @foreach (var category in categories)
+            {
+                    @if (category.isActiveFlag)
+                    {
+                        <option value="@category.CategoryId">@category.CategoryName</option>
+                    }
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label for="headerImage">Header Image:</label>
+        <InputTextArea id="headerImage" class="form-control" @bind-Value="post.HeaderImage" />
+    </div>
+
+    <div class="form-group">
+        <label for="bodyImage">Body Image:</label>
+        <InputTextArea id="bodyImage" class="form-control" @bind-Value="post.BodyImage" />
+    </div>
+
+     <div class="form-group">
+        <label for="image3">Image 3:</label>
+        <InputTextArea id="image3" class="form-control" @bind-Value="post.Image3" />
+    </div>
+
+    <div class="form-group">
+        <label for="image4">Image 4:</label>
+        <InputTextArea id="image4" class="form-control" @bind-Value="post.Image4" />
+    </div>
+
+    <div class="form-group">
+        <label for="postStatus">Post Status:</label>
+        <InputSelect id="postStatus" class="form-control" @bind-Value="post.StatusId">
+            <option value="">Select a Post Status</option>
+            @foreach (var status in postStatuses)
+            {
+                <option value="@status.Id">@status.StatusDesc</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Article(s) Parsed:</label>
+        @foreach (var articleParsed in articlesParsed)
+        {
+            <div class="form-group">
+                <label for="sourceUrl">Source URL:</label>
+                <InputText id="sourceUrl" class="form-control" @bind-Value="articleParsed.SourceUrl" />
+            </div>
+
+            <div class="form-group">
+                <label for="sourceTitle">Source Title:</label>
+                <InputText id="sourceTitle" class="form-control" @bind-Value="articleParsed.SourceTitle" />
+            </div>
+        }
+        <button @onclick="AddArticleParsed" type="button">Add Article</button>
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Create Post</button>
+    </EditForm>
+}
+else
+{
+<div>Loading..</div>    
+}
+
+@code {
+    private Post post = new Post();
+    private List<Category> categories = new List<Category>();
+    private List<PostStatus> postStatuses = new List<PostStatus>();
+    private List<ArticleParsed> articlesParsed = new List<ArticleParsed>();
+    private bool isLoading = true;
+    private string validationMessage = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            categories = await DbContext.Categories
+                                     .Where(c => c.isActiveFlag) 
+                                     .ToListAsync();
+            postStatuses = await DbContext.PostStatuses.ToListAsync();
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void AddArticleParsed()
+    {
+        articlesParsed.Add(new ArticleParsed());
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        try
+        {
+            DbContext.Posts.Add(post);
+            await DbContext.SaveChangesAsync();
+
+            foreach (var article in articlesParsed)
+            {
+                article.PostId = post.PostId;
+                DbContext.ArticleParsed.Add(article);
+            }
+            await DbContext.SaveChangesAsync();
+
+            ClearForm();
+            validationMessage = "Post submitted successfully";
+            return;
+        }
+        catch (DbUpdateException ex)
+        {
+            validationMessage = "An error occurred while updating the database.";
+            Console.WriteLine("An error occurred while updating the database: " + ex.Message);
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("Inner exception: " + ex.InnerException.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            validationMessage = "An error occurred during submission.";
+            Console.WriteLine("An error occurred: " + ex.ToString());
+        }
+    }
+
+    private void ClearForm()
+    {
+        post = new Post();
+        articlesParsed.Clear();
+    }
+
+}

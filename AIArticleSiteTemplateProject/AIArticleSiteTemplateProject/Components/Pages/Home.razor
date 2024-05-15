@@ -1,0 +1,225 @@
+﻿@page "/"
+@inject Services.PostService PostService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.WebUtilities
+@inject IClientServices ClientInfoService
+
+<PageTitle>Home</PageTitle>
+
+@if (isLoading)
+{
+<div>Loading..</div>    
+}
+else
+{
+    <div class="categories-container">
+        <div class="category-list">
+            <a href="@GetFilterUrl(null)" style="text-decoration: none; color: inherit;">
+                <div class="category @((string.IsNullOrEmpty(selectedCategoryId)) ? "selected-category" : "")">
+                    #All
+                </div>
+            </a>
+            
+            @if (categories != null)
+            {
+                foreach (var category in categories)
+                {
+                    @if (category.isActiveFlag)
+                    {
+                        <a href="@GetFilterUrl(category.CategoryId.ToString())" style="text-decoration: none;">
+                        <div class="category @((selectedCategoryId == category.CategoryId.ToString()) ? "selected-category" : "")">
+                            @category.CategoryHashTag
+                        </div>
+                        </a>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+     <div class="filter-container">
+    <h3>Trending Posts</h3>
+    <form method="get" id="trending-form">
+        <label>Show: </label>
+
+        <input type="number" name="trendingAmount" class="input-dropdown number-input" 
+               value="@TrendingPostSelectionNumberAmount" 
+               min="1" max="100" 
+               onchange="document.getElementById('trending-form').submit();" />
+
+               
+               
+
+         <label>From the past: </label>
+         <input type="number" name="trendingDays" class="input-dropdown number-input" 
+               value="@TrendingPostSelectionDayAmount" 
+               min="1" max="365" 
+               onchange="document.getElementById('trending-form').submit();" />
+
+        <label>Days</label>
+                @if (!string.IsNullOrEmpty(selectedCategoryId))
+                {
+                    <input type="hidden" name="category" value="@selectedCategoryId" />
+                }
+
+                  @* <button type="submit" class="btn-submit">Update</button>   *@
+    </form>
+</div> 
+
+    @if (trendingPosts != null)
+    {
+        <div class="news-grid">
+            @foreach (var post in trendingPosts)
+            {
+                <div class="news-card">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <img src="@post.HeaderImage" alt="@post.PostTitle">
+                    </a>
+                    <div class="news-card-body">
+                        <a href="/article/@post.PostId/@post.PostShortTitle">
+                            <h5>@post.PostTitle</h5>
+                        </a>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="filter-container">
+    <h3>Recent Posts</h3>
+    <form method="get" id="recent-form">
+        <label>Show: </label>
+        <input type="number" name="posts" class="input-dropdown" 
+               value="@RecentPostSelectingNumberAmount" 
+               min="1" max="100" 
+               onchange="document.getElementById('recent-form').submit();" />
+
+         @if (!string.IsNullOrEmpty(selectedCategoryId))
+                {
+                    <input type="hidden" name="category" value="@selectedCategoryId" />
+                }
+
+                <input type="hidden" name="trendingAmount" value="@TrendingPostSelectionNumberAmount" />
+                <input type="hidden" name="trendingDays" value="@TrendingPostSelectionDayAmount" />
+
+             @*    <button type="submit" class="btn-submit">Update</button>   *@
+    </form>
+</div>
+    @if (recentPosts != null)
+    {
+        <div class="news-grid">
+
+            @foreach (var post in recentPosts)
+            {
+                <div class="news-card">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <img src="@post.HeaderImage" alt="@post.PostTitle">
+                    </a>
+                    <div class="news-card-body">
+                        <a href="/article/@post.PostId/@post.PostShortTitle">
+                            <h5>@post.PostTitle</h5>
+                        </a>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+@code {
+    private bool isLoading = true;
+    private List<Post>? recentPosts;
+    private List<Post>? trendingPosts;
+    private List<Category>? categories;
+    public string TrendingPostSelectionDayAmount { get; set; } = "7"; 
+    public string TrendingPostSelectionNumberAmount { get; set; } = "12";
+    public string RecentPostSelectingNumberAmount { get; set; } = "12"; 
+    private string selectedCategoryId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        await ClientInfoService.LogUserActivity();
+
+        //get the category id from query string (if there is one)
+        if (query.TryGetValue("category", out var categoryValue))
+        {
+            selectedCategoryId = categoryValue.FirstOrDefault() ?? "";
+        }
+
+        if (query.TryGetValue("trendingDays", out var trendingDays))
+        {
+            TrendingPostSelectionDayAmount = trendingDays.FirstOrDefault() ?? TrendingPostSelectionDayAmount;
+        }
+        else
+        {
+            TrendingPostSelectionDayAmount = TrendingPostSelectionDayAmount; 
+        }
+
+        if (query.TryGetValue("trendingAmount", out var trendingAmount))
+        {
+            TrendingPostSelectionNumberAmount = trendingAmount.FirstOrDefault() ?? TrendingPostSelectionNumberAmount;
+        }
+        else
+        {
+            TrendingPostSelectionNumberAmount = TrendingPostSelectionNumberAmount;
+        }
+
+        if (query.TryGetValue("posts", out var posts))
+        {
+            RecentPostSelectingNumberAmount = posts.FirstOrDefault() ?? RecentPostSelectingNumberAmount;
+        }
+        else
+        {
+            RecentPostSelectingNumberAmount = RecentPostSelectingNumberAmount; 
+        }
+
+        if (string.IsNullOrEmpty(selectedCategoryId))
+        {
+            recentPosts = await PostService.GetRecentPosts(Convert.ToInt32(RecentPostSelectingNumberAmount));
+            trendingPosts = await PostService.GetTrendingPosts(Convert.ToInt32(TrendingPostSelectionNumberAmount), Convert.ToInt32(TrendingPostSelectionDayAmount));
+        }
+        else
+        {
+            recentPosts = await PostService.GetRecentPostsByCategory(Convert.ToInt32(RecentPostSelectingNumberAmount), Convert.ToInt32(selectedCategoryId));
+            trendingPosts = await PostService.GetTrendingPostsByCategory(Convert.ToInt32(TrendingPostSelectionNumberAmount), Convert.ToInt32(TrendingPostSelectionDayAmount), Convert.ToInt32(selectedCategoryId));
+        }
+
+        categories = await PostService.GetCategories();
+        isLoading = false;
+    }
+
+
+    private string GetFilterUrl(string categoryId)
+    {
+        var queryParams = new Dictionary<string, string>();
+
+        if (!string.IsNullOrEmpty(categoryId))
+        {
+            queryParams["category"] = categoryId;
+        }
+
+        if (!string.IsNullOrEmpty(TrendingPostSelectionNumberAmount))
+        {
+            queryParams["trendingAmount"] = TrendingPostSelectionNumberAmount;
+        }
+
+        if (!string.IsNullOrEmpty(TrendingPostSelectionDayAmount))
+        {
+            queryParams["trendingDays"] = TrendingPostSelectionDayAmount;
+        }
+
+        if (!string.IsNullOrEmpty(RecentPostSelectingNumberAmount))
+        {
+            queryParams["posts"] = RecentPostSelectingNumberAmount;
+        }
+
+        var query = QueryHelpers.AddQueryString("", queryParams!);
+        return query == "" ? "/" : query; 
+    }
+ 
+}

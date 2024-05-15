@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+   <link rel="stylesheet" href="styling.css" /> 
+    <link rel="icon" type="image/png" href="news-hog-logo-transparent.png" />
+    <HeadOutlet />
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    if (window.location.pathname === '/') {
+                        saveScrollPosition('indexScrollPosition');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.input-dropdown').forEach(input => {
+                input.addEventListener('change', function () {
+                    if (window.location.pathname === '/') {
+                        saveScrollPosition('indexScrollPosition');
+                    }
+                    this.form.submit();
+                });
+            });
+
+            restoreScrollPosition('indexScrollPosition');
+        });
+        function saveScrollPosition(key) {
+            localStorage.setItem(key, window.scrollY || document.documentElement.scrollTop);
+        }
+
+        function restoreScrollPosition(key) {
+            const savedPosition = localStorage.getItem(key);
+            if (savedPosition) {
+                setTimeout(function () {
+                    window.scrollTo(0, parseInt(savedPosition));
+                    localStorage.removeItem(key);
+                }, 1);
+            }
+        }
+
+
+    </script>
+    <script>
+        window.scrollToElement = (elementId) => {
+            let element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth" });
+            } else {
+                console.error('Element not found: ' + elementId);
+            }
+        };
+
+    </script>
+    <script>
+        window.scrollToBottom = () => {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        window.scrollToTop = () => {
+            window.scrollTo({
+                top: 0,
+                left: 0,
+                behavior: 'smooth'
+            });
+        };
+
+
+    </script>
+    <script>
+        window.initializeCommentListener = () => {
+            const maxCommentSize = 750;
+            setupCharacterCountListener('commentTextArea', 'valCharCountComments', maxCommentSize);
+            setupCharacterCountListener('replyTextArea', 'valCharCountReplys', maxCommentSize);
+        };
+
+        function setupCharacterCountListener(textareaId, messageId, maxCommentSize) {
+            const textarea = document.getElementById(textareaId);
+            const messageElement = document.getElementById(messageId);
+
+            if (textarea && messageElement) {
+                console.log('Listener added for:', textareaId);
+                textarea.addEventListener('input', () => {
+                    const currentLength = textarea.value.length;
+                    console.log('Current Length:', currentLength);
+                    if (currentLength > maxCommentSize) {
+                        console.log('Exceeded max length for:', textareaId);
+                        textarea.value = textarea.value.substring(0, maxCommentSize); 
+                        messageElement.textContent = `Maximum character limit reached (${maxCommentSize} characters).`;
+                    } else {
+                        messageElement.textContent = '';
+                    }
+                });
+            } else {
+                console.log('Element not found:', textareaId, messageId);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <Routes />
+  @*   <script src="_framework/blazor.web.js"></script> *@
+
+    <div id="reconnect-modal" style="display: none;"></div>
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script src="boot.js"></script>
+</body>
+
+</html>

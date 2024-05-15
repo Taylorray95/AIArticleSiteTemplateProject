@@ -1,0 +1,38 @@
+﻿@page "/admin/categories/view{categoryId:int}"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+ <h2>Post Details</h2>
+    <div>
+        <strong> Category Id: </strong> @category!.CategoryId <br />
+        <strong> Category Name: </strong> @category!.CategoryName <br />
+        <strong> Category Description: </strong> @category!.CategoryDesc <br />
+        <strong> Category HashTag: </strong> @category.CategoryHashTag <br />
+        <strong> Category Active?: </strong> @category.isActiveFlag <br />
+
+    </div>
+
+<button @onclick="() => EditCategory(category.CategoryId)" class="btn btn-primary">Edit Category</button>
+
+    @code{
+    [Parameter]
+    public int categoryId { get; set; }
+
+    private Category? category;
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await DbContext.Categories.FindAsync(categoryId);
+    }
+
+    private void EditCategory(int categoryId)
+    {
+        NavigationManager.NavigateTo($"/admin/categories/edit{categoryId}");
+    }
+
+    }

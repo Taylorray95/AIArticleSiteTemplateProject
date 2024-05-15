@@ -1,0 +1,139 @@
+﻿@page "/admin/poststatuses/edit/{statusId:int}"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+@using AIArticleSiteTemplateProject.Components.Reusable
+
+@if (!string.IsNullOrEmpty(validationMessage))
+{
+    <div class="alert alert-info">@validationMessage</div>
+}
+<br />
+
+
+<ConfirmationDialog @ref="confirmationDialog" ConfirmationChanged="OnConfirmationChanged" />
+
+@if (!isLoading)
+{
+
+    <EditForm Model="selectedStatus" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="statusName">Status Name:</label>
+            <InputText id="statusName" class="form-control" @bind-Value="selectedStatus!.StatusName" />
+        </div>
+
+        <div class="form-group">
+            <label for="statusDesc">Status Description:</label>
+            <InputText id="statusDesc" class="form-control" @bind-Value="selectedStatus!.StatusDesc" />
+        </div>
+
+ 
+        <button type="submit" class="btn btn-primary">Update Status</button>
+        <button type="button" class="btn btn-danger" @onclick="ShowDeleteConfirmation">Delete Status</button>
+    </EditForm>
+}
+else
+{
+    <div>Loading...</div>
+}
+@code{
+
+    [Parameter]
+    public int statusId {get; set;}
+
+    private PostStatus? selectedStatus;
+    private ConfirmationDialog? confirmationDialog;
+    private bool isLoading = true;
+    private string? validationMessage = "";
+    private bool isActiveFlag;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            selectedStatus = await DbContext.PostStatuses.FindAsync(statusId);
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (selectedStatus != null)
+        {
+            try
+            {
+                DbContext.PostStatuses.Update(selectedStatus);
+                await DbContext.SaveChangesAsync();
+
+                validationMessage = "Successfully updated the post status.";
+
+                StateHasChanged();
+
+                await Task.Delay(1000);
+
+                NavigationManager.NavigateTo("/admin/poststatuses/");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+        }
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        confirmationDialog!.Show("Are you sure you want to delete this post status?");
+    }
+
+    private async Task OnConfirmationChanged(bool confirmed)
+    {
+        if (confirmed)
+        {
+            await DeletePostStatus();
+        }
+    }
+
+    private async Task DeletePostStatus()
+    {
+        if (selectedStatus != null)
+        {
+            try
+            {
+                DbContext.PostStatuses.Remove(selectedStatus);
+                await DbContext.SaveChangesAsync();
+                NavigationManager.NavigateTo("/admin/");
+
+                validationMessage = "Successfully deleted the post status.";
+
+                StateHasChanged();
+
+                await Task.Delay(1000);
+
+                NavigationManager.NavigateTo("/admin/poststatuses");
+
+                return;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            validationMessage = "Error Deleting the post status..";
+            StateHasChanged();
+        }
+    }
+
+}
+
+

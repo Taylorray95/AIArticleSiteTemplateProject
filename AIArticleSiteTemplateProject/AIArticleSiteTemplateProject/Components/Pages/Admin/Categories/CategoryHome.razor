@@ -1,0 +1,103 @@
+﻿@page "/admin/categories"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+@if (!isLoading)
+{
+    <NavLink class="btn btn-link" href="/admin/categories/createcategory">Create a New Category</NavLink>
+
+    @if (categories != null)
+    {    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Category ID
+                </th>
+                <th>
+                    Category Name
+                </th>
+                <th>
+                    Category Description
+                </th>
+                <th>
+                    Category HashTag
+                </th>
+                <th>
+                    Active?
+                </th>
+                <th>
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var category in categories)
+                {
+                    <tr>
+                        <td>
+                            @category.CategoryId
+                        </td>
+                        <td>
+                            @category.CategoryName
+                        </td>
+                        <td>
+                            @category.CategoryDesc
+                        </td>
+                        <td>
+                            @category.CategoryHashTag
+                        </td>
+                        <td>
+                            @category.isActiveFlag
+                        </td>
+                        <td>
+                            <button @onclick="() => EditCategory(category.CategoryId)">Edit</button>
+                        </td>
+                        
+                    </tr>
+                }
+            </tbody>
+    </table>
+    }
+
+}
+else
+{
+    <duv>Loading...</duv>
+}
+
+@code{
+    private List<Category>? categories;
+    private bool isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLoading = true;
+            await LoadCategories();
+            isLoading = false;
+            StateHasChanged();
+
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await DbContext.Categories.ToListAsync();
+    }
+
+    private void EditCategory(int categoryId)
+    {
+        NavigationManager.NavigateTo($"/admin/categories/edit/{categoryId}");
+    }
+
+
+
+
+}

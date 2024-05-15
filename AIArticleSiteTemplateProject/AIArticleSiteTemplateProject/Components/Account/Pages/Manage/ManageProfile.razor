@@ -1,0 +1,111 @@
+﻿@page "/Account/Manage/ManageProfile"
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider 
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Services
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
+@inject BlobServiceClientWrapper BlobServiceClientWrapper
+@inject NavigationManager NavigationManager
+@using System.Security.Claims
+
+
+<PageTitle>Manage Profile</PageTitle>
+
+@if (!isLoading)
+{
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3>Profile Settings</h3>
+                    <button class="btn btn-outline-primary" @onclick="NavigateToPublicProfile">View Public Profile</button>
+                </div>
+                <hr />
+                <div style="color:red;">@valMessageError</div>
+                <div style="color:green;">@valMessageSuccess</div>
+                <div class="form-group">
+                    <label for="commentsVisible">Comments Visible On Public Profile?</label>
+                    <input type="checkbox" class="form-check-input" id="commentsVisible" @bind="userProfile!.UserHasCommentsVisibleOnProfile">
+                </div>
+                <button class="btn btn-primary" @onclick="UpdateProfile">Save Changes</button>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h4>Comment History</h4>
+                <AIArticleSiteTemplateProject.Components.Comments.CommentHistory UserProfile="@userProfile" AllowDeletion="true" />
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div>Loading profile...</div>
+}
+
+@code {
+    private ApplicationUser? userProfile;
+    private string valMessageError = "";
+    private string valMessageSuccess = "";
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity!.IsAuthenticated)
+            {
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                userProfile = await UserManager.FindByIdAsync(userId!);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            valMessageError = $"Error loading profile: {ex.Message}";
+            valMessageSuccess = "";
+        }
+
+        isLoading = false;
+    }
+
+ 
+    private async Task UpdateProfile()
+    {
+        if (userProfile == null)
+        {
+            return;
+        }
+
+        var result = await UserManager.UpdateAsync(userProfile);
+
+        if (result.Succeeded)
+        {
+            valMessageSuccess = "Successfully updated your settings.";
+            valMessageError = "";
+        }
+        else
+        {
+            valMessageError = "Error updating your settings.";
+            valMessageSuccess = "";
+        }
+    }
+
+    private void NavigateToPublicProfile()
+    {
+        NavigationManager.NavigateTo("/profile/" + userProfile!.UserName);
+    }
+}

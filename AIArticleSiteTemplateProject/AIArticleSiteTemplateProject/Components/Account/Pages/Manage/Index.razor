@@ -1,0 +1,334 @@
+﻿@page "/Account/Manage"
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Services
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
+@inject BlobServiceClientWrapper BlobServiceClientWrapper
+@inject NavigationManager NavigationManager
+@inject IConfiguration Config
+@using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Processing;
+@using SixLabors.ImageSharp.Formats.Jpeg;
+@using ImageMagick;
+@inject CDNServerManager cdnServerManager;
+@inject IWebHostEnvironment env
+<PageTitle>Profile</PageTitle>
+
+<h3>Profile</h3>
+
+<style>
+    .btn {
+        flex: 1;
+        margin: 5px;
+    }
+</style>
+
+@if (showError == true)
+{
+    <div class="text-danger">@statusMessage</div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
+                <label for="username" class="form-label">Username</label>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
+                <label for="phone-number" class="form-label">Phone number</label>
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+        </EditForm>
+    </div>
+
+    <br />
+    <br />
+    <h2>Profile Photo</h2>
+    <br />
+    <div class="col-md-6">
+        @if (showError && !string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="text-danger">@statusMessage</div>
+        }
+        @if (!showError && !string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="text-success">@statusMessage</div>
+        }
+        <div class="form-floating mb-3">
+            <img id="profile-photo" src="@imageUrl" alt="Profile Photo" style="width:200px;margin-bottom:10px;" />
+            <InputFile OnChange="OnInputFileChange" id="profilePhotoUpload" class="form-control" />
+        </div>
+
+        <div class="button-wrapper">
+            <button @onclick="SavePhoto" class="w-100 btn btn-lg btn-primary" disabled="@isProcessingFile">Save New Photo</button>
+            <button @onclick="ResetPhoto" class="w-100 btn btn-lg btn-danger">Delete Photo</button>
+        </div>
+    </div>
+</div>
+
+@if (isProcessingFile)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <p>Loading...</p>
+                    <img src="./loading-gif.webp" style="width:200px" alt="Loading" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string statusMessage = "";
+    private bool showError = false;
+    private ApplicationUser? user = default!;
+    private string? username;
+    private string? phoneNumber;
+    private string? imageUrl;
+    private IBrowserFile? selectedFile;
+    private bool isProcessingFile = false;
+    private static readonly List<string> SupportedImageFormats = new List<string>
+    {
+        "image/jpeg", "image/png", "image/gif", "image/tiff", "image/hdr" 
+    };
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var identityUser = authState.User;
+        user = await UserManager.GetUserAsync(identityUser);
+        var defaultProfilePhoto = Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"];
+        var profilePhotoFolderName = Configuration["CDNServerCredentials:ProfilePhotoFolder"];
+
+        var imageDefaultPhotoUrl = cdnServerManager.GetFullImageUrl(profilePhotoFolderName!, defaultProfilePhoto!);
+
+        string savedImageUrl = "";
+
+        if (!string.IsNullOrWhiteSpace(user!.ProfilPhotoUUID))
+        {
+            savedImageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, user!.ProfilPhotoUUID);
+        }
+
+        imageUrl = !string.IsNullOrWhiteSpace(user!.ProfilPhotoUUID)
+            ? savedImageUrl
+            : imageDefaultPhotoUrl;
+
+        username = await UserManager.GetUserNameAsync(user);
+        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        Input.PhoneNumber ??= phoneNumber;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (Input.PhoneNumber != phoneNumber)
+        {
+            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user!, Input.PhoneNumber);
+            if (!setPhoneResult.Succeeded)
+            {
+                statusMessage = "Error: Failed to set phone number.";
+                showError = true;
+                return; 
+            }
+        }
+
+        await SignInManager.RefreshSignInAsync(user!);
+        statusMessage = "Your profile has been updated";
+        showError = false;
+        StateHasChanged();
+    }
+
+    private sealed class InputModel
+    {
+        [Phone]
+        [Display(Name = "Phone number")]
+        [RegularExpression(@"^\d{10,}$", ErrorMessage = "Phone number must be at least 10 digits.")]
+        public string? PhoneNumber { get; set; }
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        isProcessingFile = true;
+        StateHasChanged();
+        selectedFile = e.File;
+        if (selectedFile != null)
+        {
+            try
+            {
+                const long maxFileSize = 5000000;
+                if (!ValidateMimeType(selectedFile) || !ValidateFileExtension(selectedFile.Name))
+                {
+                    statusMessage = "Unsupported file type. Please upload JPEG, PNG, GIF, TIFF, or HDR images.";
+                    showError = true;
+                }
+                else if (selectedFile.Size > maxFileSize)
+                {
+                    statusMessage = "File too large. Maximum allowed file size is 5MB.";
+                    showError = true;
+                }
+                else
+                {
+                    using var stream = selectedFile.OpenReadStream(maxFileSize);
+                    var processedImageBytes = await ProcessImageAsync(stream, selectedFile.ContentType);
+                    imageUrl = $"data:image/jpeg;base64,{Convert.ToBase64String(processedImageBytes)}";
+                    statusMessage = "Image loaded successfully";
+                    showError = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in OnInputFileChange: {ex.Message}");
+                statusMessage = "Error processing photo. Please try again.";
+                showError = true;
+            }
+        }
+
+        isProcessingFile = false;
+        StateHasChanged();
+    }
+
+
+
+    private bool ValidateMimeType(IBrowserFile file)
+    {
+        return SupportedImageFormats.Contains(file.ContentType.ToLower());
+    }
+
+    private bool ValidateFileExtension(string fileName)
+    {
+        var allowedExtensions = new List<string> { ".jpg", ".jpeg", ".png", ".gif" };
+        return allowedExtensions.Contains(Path.GetExtension(fileName).ToLower());
+    }
+
+    private async Task<byte[]> ProcessImageAsync(Stream inputStream, string contentType)
+    {
+        // Copy input stream to a MemoryStream for processing since the original stream may not support seeking
+        var memoryStream = new MemoryStream();
+        await inputStream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0; // Reset position after copying
+
+        using (var image = new MagickImage(memoryStream))
+        {
+            // Process the image
+            if (contentType.Equals("image/heic", StringComparison.OrdinalIgnoreCase))
+            {
+                image.Format = MagickFormat.Jpeg;
+            }
+
+            image.Resize(800, 800); // Optionally resize to manage file size
+            var outputStream = new MemoryStream();
+            image.Write(outputStream);
+            outputStream.Position = 0; // Reset for reading
+            return outputStream.ToArray();
+        }
+    }
+
+
+
+
+    private async Task SavePhoto()
+    {
+        if (selectedFile != null)
+        {
+            try
+            {
+                isProcessingFile = true;
+                StateHasChanged();
+
+                const long maxFileSize = 10000000; // 10 MB
+                using var stream = selectedFile.OpenReadStream(maxFileSize);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                var imageBytes = memoryStream.ToArray();
+
+                // Save the image to the network share
+                var fileName = await cdnServerManager.UploadImageAsync(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, imageBytes, true);
+
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    throw new Exception("Failed to upload new photo.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(user!.ProfilPhotoUUID))
+                {
+                    await cdnServerManager.DeleteImageAsync(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, user.ProfilPhotoUUID);
+                }
+
+                user!.ProfilPhotoUUID = fileName;
+                await UserManager.UpdateAsync(user);
+
+                //update the imageUrl to show the newly uploaded image in the UI
+                var savedImageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, fileName);
+                imageUrl = savedImageUrl;
+
+                statusMessage = "Photo saved successfully!";
+                showError = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in SavePhoto: {ex.Message}");
+                statusMessage = "Error saving photo... Please try again.";
+                showError = true;
+            }
+            finally
+            {
+                isProcessingFile = false;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            statusMessage = "Please select a file to upload.";
+            showError = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetPhoto()
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(user.ProfilPhotoUUID))
+            {
+                // Delete the photo file from the network share using the UUID
+                await cdnServerManager.DeleteImageAsync(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, user.ProfilPhotoUUID);
+            }
+
+            // Reset the user's profile photo UUID to null
+            user.ProfilPhotoUUID = null;
+
+            // Update the user record
+            await UserManager.UpdateAsync(user);
+
+            // Get the full URL for the default photo to update the UI
+            imageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]);
+
+            statusMessage = "Photo reset to default successfully!";
+            showError = false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in ResetPhoto: {ex.Message}");
+            statusMessage = "Error resetting photo... Please try again.";
+            showError = true;
+        }
+        StateHasChanged();
+    }
+}

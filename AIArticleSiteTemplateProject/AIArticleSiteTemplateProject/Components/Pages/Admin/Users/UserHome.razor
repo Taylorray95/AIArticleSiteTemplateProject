@@ -1,0 +1,85 @@
+﻿@page "/admin/users"
+@using AIArticleSiteTemplateProject.Data
+@using AIArticleSiteTemplateProject.Objects
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using AIArticleSiteTemplateProject.Models
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@inject ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<h3>User Management</h3>
+
+@if (usersWithRoles == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var userWithRole in usersWithRoles)
+            {
+                <tr>
+                    <td>@userWithRole.User!.Email</td>
+                    <td>@userWithRole.User.UserName</td>
+                    <td>@userWithRole.Role</td>
+                    <td>
+               @*          <button @onclick="() => ViewUser(userWithRole.User)">View</button> *@
+                        <button @onclick="() => EditUser(userWithRole.User)">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+
+@code {
+    private List<UserRoleViewModel> usersWithRoles = new List<UserRoleViewModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var users = await UserManager.Users.ToListAsync();
+        var userRoles = await DbContext.UserRoles.ToListAsync();
+        var roles = await RoleManager.Roles.ToListAsync();
+
+        usersWithRoles = users.Select(user => new UserRoleViewModel
+            {
+                User = user,
+                Role = userRoles.FirstOrDefault(ur => ur.UserId == user.Id) is IdentityUserRole<string> userRole
+                        ? roles.FirstOrDefault(r => r.Id == userRole.RoleId)?.Name ?? "User"
+                        : "User"
+            }).ToList();
+    }
+
+    //going to not work on the view screen till I have more test data/comments 
+    //view screen will show all user comments, and other relavant info 
+    //for now we just need the edit screen such that we can add/remove roles 
+
+    // private void ViewUser(ApplicationUser user)
+    // {
+        
+    // }
+
+    private void EditUser(ApplicationUser user)
+    {
+        NavigationManager.NavigateTo($"/admin/users/edit/{user.Id}");
+    }
+
+   
+}

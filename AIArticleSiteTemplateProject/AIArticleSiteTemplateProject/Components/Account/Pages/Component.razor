@@ -1,0 +1,137 @@
+﻿@* @page "/test"
+@inject AIArticleSiteTemplateProject.Services.CDNServerManager cdnServerManager
+@using System.IO
+@rendermode InteractiveServer
+<h3>Profile Photo URL: @profilePhotoUrl</h3>
+<h3>Network Share Path: @share</h3>
+
+<InputFile OnChange="UploadFile" />
+<button class="btn btn-danger" @onclick="DeleteFile">Delete Default Photo</button>
+
+@code {
+    private string profilePhotoUrl;
+    private string share;
+    private string imagePath;
+
+    protected override void OnInitialized()
+    {
+        profilePhotoUrl = cdnServerManager.GetBaseImageUrl("ProfilePhotos");
+        share = cdnServerManager.GetNetworkShareBasePath("ProfilePhotos");
+    }
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                var ms = new MemoryStream();
+                await file.OpenReadStream().CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
+
+                // Use the asynchronous method to handle file upload
+                await cdnServerManager.UploadImageAsync("ProfilePhotos", fileBytes, file.Name);
+                imagePath = Path.Combine(share, file.Name); // Update the path if needed for UI
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task DeleteFile()
+    {
+        try
+        {
+            // Use the asynchronous method to delete the file
+            await cdnServerManager.DeleteImageAsync("ProfilePhotos", "default.png");
+            Console.WriteLine("File deleted successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting file: {ex.Message}");
+        }
+    }
+}
+ *@
+
+
+
+                @page "/test"
+@inject AIArticleSiteTemplateProject.Services.CDNServerManager cdnServerManager
+@using System.IO
+@rendermode InteractiveServer
+
+<h3>Profile Photo URL: @profilePhotoUrl</h3>
+<h3>Network Share Path: @share</h3>
+<h3>Uploaded File UUID: @fileUUID</h3>
+<h3>Full Share Path: @fullSharePath</h3>
+
+<InputFile OnChange="UploadFile" />
+@if (!string.IsNullOrEmpty(imageUrl))
+{
+    <img src="@imageUrl" alt="Uploaded Image" />
+}
+
+<button class="btn btn-danger" @onclick="DeleteFile">Delete Default Photo</button>
+
+@code {
+    private string profilePhotoUrl;
+    private string share;
+    private string fileUUID;
+    private string imageUrl;
+    private string fullSharePath;
+
+    protected override void OnInitialized()
+    {
+        profilePhotoUrl = cdnServerManager.GetBaseImageUrl("ProfilePhotos");
+        share = cdnServerManager.GetNetworkShareBasePath("ProfilePhotos");
+    }
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                var ms = new MemoryStream();
+                await file.OpenReadStream().CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
+
+                // Upload the image with a UUID filename
+                fileUUID = await cdnServerManager.UploadImageAsync("ProfilePhotos", fileBytes, true);
+                fullSharePath = cdnServerManager.GetFullSharePath("ProfilePhotos", fileUUID);
+                imageUrl = cdnServerManager.GetFullImageUrl("ProfilePhotos", fileUUID); // Full URL to access the image
+
+                StateHasChanged(); // Ensure the UI updates with the new image URL
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task DeleteFile()
+    {
+        try
+        {
+            // Adjust to delete the uploaded file instead of default.png
+            if (!string.IsNullOrEmpty(fileUUID))
+            {
+                await cdnServerManager.DeleteImageAsync("ProfilePhotos", fileUUID);
+                imageUrl = null; // Clear the image URL
+                fileUUID = null;
+                fullSharePath = null;
+                Console.WriteLine("File deleted successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting file: {ex.Message}");
+        }
+    }
+}

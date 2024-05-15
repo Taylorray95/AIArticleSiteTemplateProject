@@ -1,0 +1,86 @@
+﻿@page "/profile/{Username}"
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject Services.PostService PostService
+@using AIArticleSiteTemplateProject.Data
+@inject IConfiguration Configuration
+@using AIArticleSiteTemplateProject.Services
+@inject CDNServerManager CDNServerManager
+
+
+
+<PageTitle>User Profile</PageTitle>
+
+@if (isLoading)
+{
+    <div>Loading...</div>
+}
+else
+{ 
+    <div style="color:red;">@valMessage</div> 
+
+    @if (userProfile != null || userComments != null)
+    {
+        <div class="container mt-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="@UserPhotoUrl" alt="Profile Photo" class="img-thumbnail" />
+                    <h3>@userProfile.UserName</h3>
+                    <p>Member since: @userProfile.RegistrationDate.ToString("d")</p>
+                    <p>Last login: @userProfile.LastLogin.ToString("g")</p>
+                </div>
+                <div class="col-md-8">
+                    <h4>Comment History</h4>
+                    <AIArticleSiteTemplateProject.Components.Comments.CommentHistory @rendermode="@RenderMode.InteractiveServer" UserProfile="userProfile"></AIArticleSiteTemplateProject.Components.Comments.CommentHistory>
+                </div>
+            </div>
+        </div>
+    }
+}
+@code {
+
+    [Parameter]
+    public string? Username { get; set; }
+    public ApplicationUser? userProfile;
+    private List<Comment>? userComments;
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int pageSize = 5;
+    private string valMessage = "";
+    private bool isLoading = true;
+    private string UserPhotoUrl = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (String.IsNullOrEmpty(Username))
+        {
+            valMessage = "No username provided";
+            isLoading = false;
+            return;
+        }
+        try
+        {
+            userProfile = await UserManager.FindByNameAsync(Username!);
+            if (!String.IsNullOrWhiteSpace(userProfile!.ProfilPhotoUUID!))
+            {
+                UserPhotoUrl = CDNServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, userProfile!.ProfilPhotoUUID!);
+            }
+            else
+            {
+                UserPhotoUrl = CDNServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!);
+            }
+        }
+        catch (Exception Ex)
+        {
+            Console.WriteLine(Ex.ToString());
+            valMessage = "Error loading user profile";
+        }
+
+
+        isLoading = false;
+    }
+}
+
+
