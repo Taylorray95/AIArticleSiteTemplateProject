@@ -1,14 +1,10 @@
 ﻿@inject Services.PostService PostService
-@using Microsoft.AspNetCore.Identity
-@using AIArticleSiteTemplateProject.Data
 @inject IJSRuntime JSRuntime
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 @inject NavigationManager NavManager
-@using AIArticleSiteTemplateProject.Services
-@using AIArticleSiteTemplateProject.Components.Reusable
 @inject CDNServerManager CdnServerManager
 @inject IConfiguration Configuration
 
@@ -21,25 +17,18 @@ else
     <h3>Comments</h3>
 
     <div class="comments">
-        @if (IsUserLoggedIn)
-        {
-            @if (showCommentSection)
-            {
-                <textarea @bind="newComment.CommentBody" id="commentTextArea" placeholder="Write a comment..."></textarea>
-                <button @onclick="AddComment" style="background-color: #007BFF;margin-bottom:10px; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
-                <button class="button-x" @onclick="CancelComment">X</button>
-                <label style="color:red;">@valComment</label>
-                <span id="valCharCountComments" style="color:red;"></span>
-            }
-            else
-            {
-                <button @onclick="() => showCommentSection = true" style="background-color: #007BFF; margin-bottom:10px;color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Add a Comment</button>
-            }
 
+        @if (showCommentSection)
+        {
+            <textarea @bind="newComment.CommentBody" id="commentTextArea" placeholder="Write a comment..."></textarea>
+            <button @onclick="AddComment" style="background-color: #007BFF;margin-bottom:10px; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Post Comment</button>
+            <button class="button-x" @onclick="CancelComment">X</button>
+            <label style="color:red;">@valComment</label>
+            <span id="valCharCountComments" style="color:red;"></span>
         }
         else
         {
-            <p>You must be logged in to post a comment.</p>
+            <button @onclick="() => showCommentSection = true" style="background-color: #007BFF; margin-bottom:10px;color: white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer;">Add a Comment</button>
         }
 
      
@@ -56,9 +45,13 @@ else
             {
                 <div class="comment">
                     <div class="profile-section" @onclick="() => NavigateToProfile(comment.UserName!)">
-                        @if (userPhotos.ContainsKey(comment!.UserId!))
+                        @if (comment.UserId is not null && userPhotos.ContainsKey(comment!.UserId!))
                         {
                             <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[comment.UserId]" />
+                        }
+                        else
+                        {
+                            <img class="profile-photo" style="cursor:pointer;" src="@defaultProfilePhotoLink" />
                         }
                         <p class="username" style="cursor:pointer;">@comment.UserName</p>
                     </div>
@@ -67,16 +60,15 @@ else
                    
                     <p class="comment-date">Posted on: @comment.CommentSysDate</p>
 
-                    @if (IsUserLoggedIn && comment.ParentCommentId == null)
+                    @if (comment.ParentCommentId == null)
                     {
                         <button disabled="@replyButtonDisabled" @onclick="() => BeginReply(comment)">Reply</button>
                     }
 
-                     @if (IsUserLoggedIn && comment.UserId == CurrentUser!.Id)
+                    @if (comment.UserId is not null && CurrentUser is not null && comment.UserId == CurrentUser!.Id)
                     {
-                        <button class="btn btn-danger btn-sm" @onclick="() => ShowDeleteConfirmation(comment.CommentId)">Delete</button>
+                        <button class="btn btn-danger" style="margin-bottom:.5rem;" @onclick="() => ShowDeleteConfirmation(comment.CommentId)">Delete</button>
                     }
-
 
                     @if (comment.Replies != null && comment.Replies.Any())
                     {
@@ -96,16 +88,25 @@ else
                             <div class="replies">
                                 @foreach (var reply in comment.Replies)
                                 {
-                                   <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName!)">
+                                    <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName!)">
                                         <div class="profile-section">
-                                            @if (userPhotos.ContainsKey(reply!.UserId!))
+                                            @if (reply!.UserId is not null && userPhotos.ContainsKey(reply!.UserId!))
                                             {
                                                 <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[reply.UserId!]" />
+                                            }
+                                            else
+                                            {
+                                                <img class="profile-photo" style="cursor:pointer;" src="@defaultProfilePhotoLink" />
                                             }
                                             <p class="username" style="cursor:pointer;">@reply.UserName</p>
                                         </div>
                                         <p class="comment-body">@reply.CommentBody</p>
                                         <p class="comment-date">Posted on: @reply.CommentSysDate</p>
+
+                                        @if (reply.UserId is not null && CurrentUser is not null && reply.UserId == CurrentUser!.Id)
+                                        {
+                                            <button class="btn btn-danger" @onclick="() => ShowDeleteConfirmation(reply.CommentId)">Delete</button>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -172,70 +173,63 @@ else
 
     private int pendingDeleteCommentId;
 
+    private string defaultProfilePhotoLink = "";
 
     protected override async Task OnInitializedAsync()
     {
         comments = await PostService.GetCommentsByPostId(PostId);
-
-        // foreach (var comment in comments)
-        // {
-        //     var commentUser = await UserManager.FindByIdAsync(comment!.UserId!);
-        //     if (commentUser != null && !String.IsNullOrWhiteSpace(commentUser.ProfilPhotoUUID))
-        //     {
-        //         string photoUrl = CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, commentUser.ProfilPhotoUUID!);
-        //         userPhotos[comment.UserId!] = photoUrl;
-        //     }
-        //     else if (String.IsNullOrWhiteSpace(commentUser.ProfilPhotoUUID))
-        //     {
-        //         string defaultPhotoUrl = CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!);
-        //         userPhotos[comment.UserId!] = defaultPhotoUrl;
-        //     }
-
-        // }
+        defaultProfilePhotoLink = CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!);
 
         foreach (var comment in comments)
         {
-            // Fetch and store user photo URLs for the main comments
-            var commentUser = await UserManager.FindByIdAsync(comment!.UserId!);
-            if (commentUser != null)
+            string photoUrl;
+            if (comment.UserId != null)
             {
-                string photoUrl = string.IsNullOrWhiteSpace(commentUser.ProfilPhotoUUID)
-                    ? CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!)
-                    : CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, commentUser.ProfilPhotoUUID);
-                userPhotos[comment.UserId!] = photoUrl;
+                if (!userPhotos.TryGetValue(comment.UserId, out photoUrl))
+                {
+                    var commentUser = await UserManager.FindByIdAsync(comment.UserId);
+                    photoUrl = commentUser != null && !string.IsNullOrWhiteSpace(commentUser.ProfilPhotoUUID)
+                        ? CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, commentUser.ProfilPhotoUUID)
+                        : defaultProfilePhotoLink;
+
+                    userPhotos[comment.UserId] = photoUrl;
+                }
             }
 
-            // Fetch and store user photo URLs for replies to the comments
+            // Handle replies similarly
             foreach (var reply in comment.Replies)
             {
-                var replyUser = await UserManager.FindByIdAsync(reply!.UserId!);
-                if (replyUser != null)
+                if (reply.UserId != null)
                 {
-                    string replyPhotoUrl = string.IsNullOrWhiteSpace(replyUser.ProfilPhotoUUID)
-                        ? CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!)
-                        : CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, replyUser.ProfilPhotoUUID);
-                    userPhotos[reply.UserId!] = replyPhotoUrl;
+                    if (!userPhotos.TryGetValue(reply.UserId, out photoUrl))
+                    {
+                        var replyUser = await UserManager.FindByIdAsync(reply.UserId);
+                        photoUrl = replyUser != null && !string.IsNullOrWhiteSpace(replyUser.ProfilPhotoUUID)
+                            ? CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, replyUser.ProfilPhotoUUID)
+                            : defaultProfilePhotoLink;
+
+                        userPhotos[reply.UserId] = photoUrl;
+                    }
                 }
             }
         }
 
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-
-        IsUserLoggedIn = SignInManager.IsSignedIn(user); 
+        IsUserLoggedIn = SignInManager.IsSignedIn(user);
 
         if (IsUserLoggedIn)
         {
             CurrentUser = await UserManager.GetUserAsync(user);
-            string photoUrl = string.IsNullOrWhiteSpace(CurrentUser!.ProfilPhotoUUID)
-            ? CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!)
-            : CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, CurrentUser.ProfilPhotoUUID);
+            string photoUrl = string.IsNullOrWhiteSpace(CurrentUser.ProfilPhotoUUID)
+                ? defaultProfilePhotoLink
+                : CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, CurrentUser.ProfilPhotoUUID);
 
-            userPhotos[CurrentUser!.Id] = photoUrl;
+            userPhotos[CurrentUser.Id] = photoUrl;
         }
         isLoading = false;
     }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -261,10 +255,22 @@ else
         }
 
         newComment.PostId = PostId;
-        newComment.UserId = CurrentUser!.Id; 
-        newComment.UserName = CurrentUser.UserName; 
+
+        if (CurrentUser is not null)
+        {
+            newComment.UserId = CurrentUser!.Id;
+            newComment.UserName = CurrentUser.UserName;
+        }
+        else
+        {
+            newComment.UserName = "Anonymous";
+            newComment.isAnonymous = true;
+        }
+
+
         await PostService.AddComment(newComment);
         await PostService.IncrementTotalComments(PostId);
+
         comments = await PostService.GetCommentsByPostId(PostId);
         newComment = new Comment();
         showCommentSection = false;
@@ -292,22 +298,40 @@ else
 
         newReply.PostId = PostId;
         newReply.ParentCommentId = replyToComment!.CommentId!;
-        newReply.UserId = CurrentUser!.Id; 
-        newReply.UserName = CurrentUser!.UserName; 
+
+        if (CurrentUser is not null)
+        {
+            newReply.UserId = CurrentUser!.Id;
+            newReply.UserName = CurrentUser!.UserName;
+        }
+        else
+        {
+            newReply.UserName = "Anonymous";
+            newReply.isAnonymous = true;
+        }
+
         await PostService.AddComment(newReply);
         await PostService.IncrementTotalComments(PostId);
         replyToComment = null;
         replyButtonDisabled = false;
         comments = await PostService.GetCommentsByPostId(PostId); 
         newReply = new Comment(); 
-        
+
 
     }
 
     private async Task BeginReply(Comment comment)
     {
-        var user = await UserManager.FindByIdAsync(comment.UserId!);
-        parentCommentersUsername = user!.UserName;
+        if (comment.UserId is not null)
+        {
+            var user = await UserManager.FindByIdAsync(comment.UserId!);
+            parentCommentersUsername = user!.UserName;
+        }
+        else
+        {
+            parentCommentersUsername = "Anonymous";
+        }
+
         replyButtonDisabled = true;
         showReplySection = true;
         replyToComment = comment;
@@ -352,7 +376,10 @@ else
 
     private void NavigateToProfile(string username)
     {
-        NavManager.NavigateTo($"/profile/{username}");
+        if (username != "Anonymous")
+        {
+            NavManager.NavigateTo($"/profile/{username}");
+        }
     }
 
     private async Task DeleteComment(int commentId)

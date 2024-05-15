@@ -1,13 +1,7 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@inject UserManager<ApplicationUser> UserManager
+﻿@inject UserManager<ApplicationUser> UserManager
 @inject Services.PostService PostService
-@using AIArticleSiteTemplateProject.Data
-@using AIArticleSiteTemplateProject.Objects
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext DbContext
-@using AIArticleSiteTemplateProject.Components.Reusable
-
 <PageTitle>User Profile</PageTitle>
 
 @if (isLoading)

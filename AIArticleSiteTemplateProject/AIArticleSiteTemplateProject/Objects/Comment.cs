@@ -16,6 +16,7 @@ namespace AIArticleSiteTemplateProject.Objects
         public DateTime CommentLastUpdated { get; set; } = DateTime.Now;
         public string? UserId { get; set; }
         public string? UserName { get; set; }
+        public bool isAnonymous { get; set; } = false;
         public ICollection<Comment>? Replies { get; set; } 
     }
 }
