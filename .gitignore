@@ -413,3 +413,10 @@ appsettings.Development.json
 appsettings.Production.json
 appsettings.Staging.json
 appsettings.json
+
+
+**/Migrations
+*/Migrations
+Migrations
+
+
