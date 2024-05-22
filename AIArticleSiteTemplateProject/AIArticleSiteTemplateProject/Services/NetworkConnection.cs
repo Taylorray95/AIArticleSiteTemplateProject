@@ -18,7 +18,7 @@ namespace AIArticleSiteTemplateProject.Services
 
             var netResource = new NetResource
             {
-                Scope = ResourceScope.GlobalNetwork,
+                Scope = ResourceScope.Context,
                 ResourceType = ResourceType.Disk,
                 DisplayType = ResourceDisplaytype.Share,
                 RemoteName = networkPath

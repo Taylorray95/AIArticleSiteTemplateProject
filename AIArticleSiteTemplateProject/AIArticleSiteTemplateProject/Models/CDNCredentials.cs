@@ -17,5 +17,7 @@
         public string? PostImagesFolder { get; set; }
 
         public string? ApplicationName { get; set; }
+
+        public string? ApplicationDefaultProfilePhoto { get; set; }
     }
 }

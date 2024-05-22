@@ -8,7 +8,7 @@
 @inject NavigationManager NavigationManager
 @using AIArticleSiteTemplateProject.Components.Reusable
 @inject IJSRuntime JSRuntime
-
+@inject CDNServerManager cdnServerManager
 
 @if (!string.IsNullOrEmpty(validationMessage))
 {
@@ -79,25 +79,97 @@
             <InputDate id="postLastUpdated" class="form-control"  @bind-Value="post.PostLastUpdated" />
         </div>
 
+        @* Header Image *@
         <div class="form-group">
-            <label for="headerImage">Header Image:</label>
-            <InputText id="headerImage" class="form-control" @bind-Value="post.HeaderImage" />
+            <label for="headerImageOption">Header Image Option:</label>
+            <InputSelect id="headerImageOption" class="form-control" @bind-Value="headerImageOption">
+                <option value="link">Link</option>
+                <option value="upload">Upload</option>
+            </InputSelect>
         </div>
+        @if (headerImageOption == "link")
+        {
+            <div class="form-group">
+                <label for="headerImage">Header Image Link:</label>
+                <InputText id="headerImage" class="form-control" @bind-Value="post.HeaderImage" @oninput="@(() => OnImageFieldChanged(headerImageOption, nameof(post.HeaderImageIsExternalLinkFlag), nameof(post.HeaderImageIDIfNotExternalLink), nameof(post.HeaderImage)))" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label for="headerImageUpload">Header Image Upload:</label>
+                <InputFile id="headerImageUpload" OnChange="UploadHeaderImageAsync" />
+            </div>
+        }
 
+        @* Body Image *@
         <div class="form-group">
-            <label for="bodyImage">Body Image:</label>
-            <InputText id="bodyImage" class="form-control" @bind-Value="post.BodyImage" />
+            <label for="bodyImageOption">Body Image Option:</label>
+            <InputSelect id="bodyImageOption" class="form-control" @bind-Value="bodyImageOption">
+                <option value="link">Link</option>
+                <option value="upload">Upload</option>
+            </InputSelect>
         </div>
+        @if (bodyImageOption == "link")
+        {
+            <div class="form-group">
+                <label for="bodyImage">Body Image Link:</label>
+                <InputText id="bodyImage" class="form-control" @bind-Value="post.BodyImage" @oninput="@(() => OnImageFieldChanged(bodyImageOption, nameof(post.BodyImageIsExternalLinkFlag), nameof(post.BodyImageIDIfNotExternalLink), nameof(post.BodyImage)))" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label for="bodyImageUpload">Body Image Upload:</label>
+                <InputFile id="bodyImageUpload" OnChange="UploadBodyImageAsync" />
+            </div>
+        }
 
+        @* Image 3 *@
         <div class="form-group">
-            <label for="Image 3">Image 3:</label>
-            <InputText id="Image3" class="form-control" @bind-Value="post.Image3" />
+            <label for="image3Option">Image 3 Option:</label>
+            <InputSelect id="image3Option" class="form-control" @bind-Value="image3Option">
+                <option value="link">Link</option>
+                <option value="upload">Upload</option>
+            </InputSelect>
         </div>
+        @if (image3Option == "link")
+        {
+            <div class="form-group">
+                <label for="image3">Image 3 Link:</label>
+                <InputText id="image3" class="form-control" @bind-Value="post.Image3" @oninput="@(() => OnImageFieldChanged(image3Option, nameof(post.Image3IsExternalLinkFlag), nameof(post.Image3ImageIDIfNotExternalLink), nameof(post.Image3)))" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label for="image3Upload">Image 3 Upload:</label>
+                <InputFile id="image3Upload" OnChange="UploadImage3Async" />
+            </div>
+        }
 
+        @* Image 4 *@
         <div class="form-group">
-            <label for="Image 4">Image 4:</label>
-            <InputText id="Image4" class="form-control" @bind-Value="post.Image4" />
+            <label for="image4Option">Image 4 Option:</label>
+            <InputSelect id="image4Option" class="form-control" @bind-Value="image4Option">
+                <option value="link">Link</option>
+                <option value="upload">Upload</option>
+            </InputSelect>
         </div>
+        @if (image4Option == "link")
+        {
+            <div class="form-group">
+                <label for="image4">Image 4 Link:</label>
+                <InputText id="image4" class="form-control" @bind-Value="post.Image4" @oninput="@(() => OnImageFieldChanged(image4Option, nameof(post.Image4IsExternalLinkFlag), nameof(post.Image4ImageIDIfNotExternalLink), nameof(post.Image4)))" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label for="image4Upload">Image 4 Upload:</label>
+                <InputFile id="image4Upload" OnChange="UploadImage4Async" />
+            </div>
+        }
 
         <div class="form-group">
             <label for="totalComments">Total Comments:</label>
@@ -145,9 +217,13 @@ else
     private string? totalCommentsText;
     private string? pageViewsText;
 
-     protected override async Task OnInitializedAsync()
-    {
+    private string headerImageOption = "link";
+    private string bodyImageOption = "link";
+    private string image3Option = "link";
+    private string image4Option = "link";
 
+    protected override async Task OnInitializedAsync()
+    {
         isLoading = true;
         categories = await DbContext.Categories.ToListAsync();
         postStatuses = await DbContext.PostStatuses.ToListAsync();
@@ -161,13 +237,18 @@ else
             articlesParsed = await DbContext.ArticleParsed
                                             .Where(ap => ap.PostId == post.PostId)
                                             .ToListAsync();
+
+            // Initialize image options based on existing data
+            headerImageOption = post.HeaderImageIsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
+            bodyImageOption = post.BodyImageIsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
+            image3Option = post.Image3IsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
+            image4Option = post.Image4IsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
         }
         else
         {
-            //NavigationManager.NavigateTo("/admin/");
+            NavigationManager.NavigateTo("/admin/");
         }
         isLoading = false;
-        
     }
 
     protected override void OnParametersSet()
@@ -191,17 +272,16 @@ else
         {
             try
             {
-                post.TotalComments = string.IsNullOrWhiteSpace(totalCommentsText) 
-                                     ? (int?)null 
+                post.TotalComments = string.IsNullOrWhiteSpace(totalCommentsText)
+                                     ? (int?)null
                                      : int.Parse(totalCommentsText);
 
-                post.PageViews = string.IsNullOrWhiteSpace(pageViewsText) 
-                                 ? (int?)null 
+                post.PageViews = string.IsNullOrWhiteSpace(pageViewsText)
+                                 ? (int?)null
                                  : int.Parse(pageViewsText);
 
                 DbContext.Posts.Update(post);
                 await DbContext.SaveChangesAsync();
-
 
                 foreach (var article in articlesParsed)
                 {
@@ -223,8 +303,6 @@ else
                 await Task.Delay(1000);
 
                 NavigationManager.NavigateTo("/admin/posts");
-
-                
             }
             catch (Exception ex)
             {
@@ -260,6 +338,70 @@ else
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+            }
+        }
+    }
+
+    private async void OnImageFieldChanged(string imageOption, string isLinkFlagField, string imageIdField, string imageUrlField)
+    {
+        if (imageOption == "link")
+        {
+            var imageIdValue = post.GetType().GetProperty(imageIdField).GetValue(post);
+            if (imageIdValue != null)
+            {
+                // Delete the image from the CDN
+                await cdnServerManager.DeleteImageAsync("PostImagesFolder", imageIdValue.ToString());
+            }
+
+            post.GetType().GetProperty(isLinkFlagField).SetValue(post, true);
+            post.GetType().GetProperty(imageIdField).SetValue(post, null);
+            post.GetType().GetProperty(imageUrlField).SetValue(post, null);
+        }
+    }
+
+    private async Task UploadHeaderImageAsync(InputFileChangeEventArgs e)
+    {
+        await UploadImageAsync(e, nameof(post.HeaderImage), nameof(post.HeaderImageIDIfNotExternalLink), nameof(post.HeaderImageIsExternalLinkFlag));
+    }
+
+    private async Task UploadBodyImageAsync(InputFileChangeEventArgs e)
+    {
+        await UploadImageAsync(e, nameof(post.BodyImage), nameof(post.BodyImageIDIfNotExternalLink), nameof(post.BodyImageIsExternalLinkFlag));
+    }
+
+    private async Task UploadImage3Async(InputFileChangeEventArgs e)
+    {
+        await UploadImageAsync(e, nameof(post.Image3), nameof(post.Image3ImageIDIfNotExternalLink), nameof(post.Image3IsExternalLinkFlag));
+    }
+
+    private async Task UploadImage4Async(InputFileChangeEventArgs e)
+    {
+        await UploadImageAsync(e, nameof(post.Image4), nameof(post.Image4ImageIDIfNotExternalLink), nameof(post.Image4IsExternalLinkFlag));
+    }
+
+    private async Task UploadImageAsync(InputFileChangeEventArgs e, string imageField, string imageIdField, string isLinkFlagField)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                var ms = new MemoryStream();
+                await file.OpenReadStream().CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
+
+                string fileUUID = await cdnServerManager.UploadImageAsync("PostImagesFolder", fileBytes, true);
+                string imageUrl = cdnServerManager.GetFullImageUrl("PostImagesFolder", fileUUID);
+
+                post.GetType().GetProperty(imageField).SetValue(post, imageUrl);
+                post.GetType().GetProperty(imageIdField).SetValue(post, fileUUID);
+                post.GetType().GetProperty(isLinkFlagField).SetValue(post, false);
+
+                StateHasChanged(); // Ensure the UI updates with the new image URL
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
             }
         }
     }

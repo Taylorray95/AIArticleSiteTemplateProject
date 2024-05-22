@@ -2,7 +2,7 @@
 
 @inject NavigationManager NavigationManager
 <style>
-  
+
 
 </style>
 <div class="top-row-LoginDisplay">
@@ -48,6 +48,12 @@
                     </button>
                 </form>
             </div>
+
+            <div class="">
+                <NavLink class="link" href="/privacypolicy" style="margin-left:auto;">
+                    Privacy Policy
+                </NavLink>
+            </div>
         </Authorized>
         <NotAuthorized>
             <div class="">
@@ -58,6 +64,12 @@
             <div class="">
                 <NavLink class="logout-link" href="Account/Login">
                     <span class="logout-link" aria-hidden="true"></span> Login
+                </NavLink>
+            </div>
+
+            <div class="">
+                <NavLink class="privacy-link" href="/privacypolicy" style="margin-left:auto;font-size:15px;">
+                    Privacy Policy
                 </NavLink>
             </div>
         </NotAuthorized>

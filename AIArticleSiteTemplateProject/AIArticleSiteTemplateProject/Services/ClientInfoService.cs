@@ -31,19 +31,44 @@ namespace AIArticleSiteTemplateProject.Services
         {
             var httpContext = _httpContextAccessor.HttpContext;
             var user = httpContext.User;
-            string userId = user.Identity.IsAuthenticated ? _userManager.GetUserId(user) : null;
-            var ipAddress = GetUserIPAddress(httpContext);
 
-            var userActivity = new UserActivityLog
+            if (user.Identity.IsAuthenticated)
             {
-                UserId = userId,
-                IPAddress = ipAddress,
-                Date = DateTime.UtcNow
-            };
+                string userId = _userManager.GetUserId(user);
 
-            _context.UserActivityLog.Add(userActivity);
-            await _context.SaveChangesAsync();
+                if (await _userManager.IsInRoleAsync(await _userManager.FindByIdAsync(userId), "SuperAdmin") ||
+                    await _userManager.IsInRoleAsync(await _userManager.FindByIdAsync(userId), "Admin"))
+                {
+                    return;
+                }
+
+                var ipAddress = GetUserIPAddress(httpContext);
+                var userActivity = new UserActivityLog
+                {
+                    UserId = userId,
+                    IPAddress = ipAddress,
+                    Date = DateTime.UtcNow
+                };
+
+                _context.UserActivityLog.Add(userActivity);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                var ipAddress = GetUserIPAddress(httpContext);
+
+                var userActivity = new UserActivityLog
+                {
+                    UserId = null,
+                    IPAddress = ipAddress,
+                    Date = DateTime.UtcNow
+                };
+
+                _context.UserActivityLog.Add(userActivity);
+                await _context.SaveChangesAsync();
+            }
         }
+
     }
 
 

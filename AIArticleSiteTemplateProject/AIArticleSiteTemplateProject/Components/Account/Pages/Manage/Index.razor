@@ -122,7 +122,7 @@
 
         string savedImageUrl = "";
 
-        if (!string.IsNullOrWhiteSpace(user!.ProfilPhotoUUID))
+        if (user is not null && user.ProfilPhotoUUID is not null &&!string.IsNullOrWhiteSpace(user!.ProfilPhotoUUID))
         {
             savedImageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, user!.ProfilPhotoUUID);
         }
@@ -318,7 +318,7 @@
             await UserManager.UpdateAsync(user);
 
             // Get the full URL for the default photo to update the UI
-            imageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]);
+            imageUrl = cdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, Configuration["CDNServerCredentials:ApplicationDefaultProfilePhoto"]!);
 
             statusMessage = "Photo reset to default successfully!";
             showError = false;

@@ -373,7 +373,8 @@ h3 {
         border-top: 1px solid #ddd;
     }
 
-  
+
+
 
 .user-info {
     display: flex;
@@ -385,6 +386,14 @@ h3 {
     display: inline;
     margin: 0;
     padding: 0;
+}
+
+a, .privacy-link {
+    color: #007bff;
+    font-family: Arial, sans-serif;
+    margin-right: 15px;
+    font-size: 1rem;
+    text-decoration: underline;
 }
 
 a, .logout-link {
