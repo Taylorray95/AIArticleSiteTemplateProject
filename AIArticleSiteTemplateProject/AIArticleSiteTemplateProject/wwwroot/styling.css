@@ -469,6 +469,20 @@ a, .logout-link {
     width: 50px; 
     display: inline-block; 
 }
+.post-stats {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin-top: 0.5rem !important;
+}
 
-
-
+    .post-stats .icon {
+        width: 16px !important; /* Adjust the size as needed */
+        height: 16px !important; /* Adjust the size as needed */
+        display: inline-block !important;
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+        vertical-align: middle !important;
+        /* Ensure images are not stretched */
+        object-fit: contain !important;
+    }

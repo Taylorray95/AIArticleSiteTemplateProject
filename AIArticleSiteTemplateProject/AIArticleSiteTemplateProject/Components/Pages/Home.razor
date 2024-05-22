@@ -69,7 +69,7 @@ else
     @if (trendingPosts != null)
     {
         <div class="news-grid">
-            @foreach (var post in trendingPosts)
+           @*  @foreach (var post in trendingPosts)
             {
                 <div class="news-card">
                     <a href="/article/@post.PostId/@post.PostShortTitle">
@@ -80,6 +80,27 @@ else
                             <h5>@post.PostTitle</h5>
                         </a>
                         <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                    </div>
+                </div>
+            } *@
+            @foreach (var post in trendingPosts)
+            {
+                <div class="news-card">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <img class="news-card-image" src="@post.HeaderImage" alt="@post.PostTitle">
+                    </a>
+                    <div class="news-card-body">
+                        <a href="/article/@post.PostId/@post.PostShortTitle">
+                            <h5>@post.PostTitle</h5>
+                        </a>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                        <div class="post-stats">
+                            <img class="icon views-icon" src="/images/views.jpg" alt="Views" style="width: 16px; height: 16px;">
+                            <span>@post.PageViews</span>
+                            <img class="icon comments-icon" src="/images/comments.jpg" alt="Comments" style="width: 16px; height: 16px;">
+                            <span>@post.TotalComments</span>
+                        </div>
+
                     </div>
                 </div>
             }
@@ -110,7 +131,7 @@ else
     {
         <div class="news-grid">
 
-            @foreach (var post in recentPosts)
+          @*   @foreach (var post in recentPosts)
             {
                 <div class="news-card">
                     <a href="/article/@post.PostId/@post.PostShortTitle">
@@ -120,7 +141,29 @@ else
                         <a href="/article/@post.PostId/@post.PostShortTitle">
                             <h5>@post.PostTitle</h5>
                         </a>
-                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h tt")</p>
+                    </div>
+                </div>
+            } *@
+
+            @foreach (var post in recentPosts)
+            {
+                <div class="news-card">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <img class="news-card-image" src="@post.HeaderImage" alt="@post.PostTitle">
+                    </a>
+                    <div class="news-card-body">
+                        <a href="/article/@post.PostId/@post.PostShortTitle">
+                            <h5>@post.PostTitle</h5>
+                        </a>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h tt")</p>
+                        <div class="post-stats">
+                            <img class="icon views-icon" src="/images/views.jpg" alt="Views" style="width: 16px; height: 16px;">
+                            <span>@post.PageViews</span>
+                            <img class="icon comments-icon" src="/images/comments.jpg" alt="Comments" style="width: 16px; height: 16px;">
+                            <span>@post.TotalComments</span>
+                        </div>
+
                     </div>
                 </div>
             }
