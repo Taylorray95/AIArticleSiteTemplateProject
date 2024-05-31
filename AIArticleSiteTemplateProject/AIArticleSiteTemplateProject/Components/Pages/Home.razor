@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IClientServices ClientInfoService
+@inject IConfiguration Configuration
 
 <PageTitle>Home</PageTitle>
 
@@ -93,7 +94,7 @@ else
                         <a href="/article/@post.PostId/@post.PostShortTitle">
                             <h5>@post.PostTitle</h5>
                         </a>
-                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h tt")</p>
                         <div class="post-stats">
                             <img class="icon views-icon" src="/images/views.jpg" alt="Views" style="width: 16px; height: 16px;">
                             <span>@post.PageViews</span>
@@ -175,13 +176,21 @@ else
     private List<Post>? recentPosts;
     private List<Post>? trendingPosts;
     private List<Category>? categories;
-    public string TrendingPostSelectionDayAmount { get; set; } = "7"; 
-    public string TrendingPostSelectionNumberAmount { get; set; } = "12";
-    public string RecentPostSelectingNumberAmount { get; set; } = "12"; 
+    public string? TrendingPostSelectionDayAmount { get; set; }
+    public string? TrendingPostSelectionNumberAmount { get; set; }
+    public string? RecentPostSelectingNumberAmount { get; set; }
     private string selectedCategoryId = "";
 
     protected override async Task OnInitializedAsync()
     {
+        var defaultTrendingDays = Configuration["ApplicationSettings:TrendingPostSelectionDayAmount"];
+        var defaultTrendingAmount = Configuration["ApplicationSettings:TrendingPostSelectionNumberAmount"];
+        var defaultRecentPosts = Configuration["ApplicationSettings:RecentPostSelectingNumberAmount"];
+
+        TrendingPostSelectionDayAmount = defaultTrendingDays!;
+        TrendingPostSelectionNumberAmount = defaultTrendingAmount!;
+        RecentPostSelectingNumberAmount = defaultRecentPosts!;
+
         var uri = new Uri(NavigationManager.Uri);
         var query = QueryHelpers.ParseQuery(uri.Query);
 

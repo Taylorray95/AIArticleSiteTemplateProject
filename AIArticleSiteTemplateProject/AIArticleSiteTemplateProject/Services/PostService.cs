@@ -135,10 +135,21 @@ namespace AIArticleSiteTemplateProject.Services
                 throw new ArgumentException("Comment not found");
             }
 
+            // Count the total number of comments being deleted (comment + replies)
+            int commentsToDelete = 1; // Start with the main comment
+            if (comment.Replies != null)
+            {
+                commentsToDelete += comment.Replies.Count;
+            }
+            // Remove the comments
             _context.Comments.RemoveRange(comment.Replies!);
             _context.Comments.Remove(comment);
 
-            await DecrementTotalComments(comment.PostId);
+            var post = await _context.Posts.FindAsync(comment.PostId);
+            if (post != null)
+            {
+                post.TotalComments -= commentsToDelete;
+            }
 
             await _context.SaveChangesAsync();
         }

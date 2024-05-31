@@ -65,7 +65,7 @@ else
                         <button disabled="@replyButtonDisabled" @onclick="() => BeginReply(comment)">Reply</button>
                     }
 
-                    @if (comment.UserId is not null && CurrentUser is not null && comment.UserId == CurrentUser!.Id)
+                    @if (comment.UserId is not null && CurrentUser is not null && comment.UserId == CurrentUser!.Id || isCurrentUserUserSuperAdmin)
                     {
                         <button class="btn btn-danger" style="margin-bottom:.5rem;" @onclick="() => ShowDeleteConfirmation(comment.CommentId)">Delete</button>
                     }
@@ -88,8 +88,8 @@ else
                             <div class="replies">
                                 @foreach (var reply in comment.Replies)
                                 {
-                                    <div class="reply reply-box" @onclick="() => NavigateToProfile(reply.UserName!)">
-                                        <div class="profile-section">
+                                    <div class="reply reply-box" >
+                                        <div class="profile-section" @onclick="() => NavigateToProfile(reply.UserName!)">
                                             @if (reply!.UserId is not null && userPhotos.ContainsKey(reply!.UserId!))
                                             {
                                                 <img class="profile-photo" style="cursor:pointer;" src="@userPhotos[reply.UserId!]" />
@@ -103,7 +103,7 @@ else
                                         <p class="comment-body">@reply.CommentBody</p>
                                         <p class="comment-date">Posted on: @reply.CommentSysDate</p>
 
-                                        @if (reply.UserId is not null && CurrentUser is not null && reply.UserId == CurrentUser!.Id)
+                                        @if (reply.UserId is not null && CurrentUser is not null && reply.UserId == CurrentUser!.Id || isCurrentUserUserSuperAdmin)
                                         {
                                             <button class="btn btn-danger" @onclick="() => ShowDeleteConfirmation(reply.CommentId)">Delete</button>
                                         }
@@ -175,6 +175,8 @@ else
 
     private string defaultProfilePhotoLink = "";
 
+    private bool isCurrentUserUserSuperAdmin = false;
+
     protected override async Task OnInitializedAsync()
     {
         comments = await PostService.GetCommentsByPostId(PostId);
@@ -226,7 +228,9 @@ else
                 : CdnServerManager.GetFullImageUrl(Configuration["CDNServerCredentials:ProfilePhotoFolder"]!, CurrentUser.ProfilPhotoUUID);
 
             userPhotos[CurrentUser.Id] = photoUrl;
+            isCurrentUserUserSuperAdmin = await UserManager.IsInRoleAsync(CurrentUser, "SuperAdmin");
         }
+
         isLoading = false;
     }
 
