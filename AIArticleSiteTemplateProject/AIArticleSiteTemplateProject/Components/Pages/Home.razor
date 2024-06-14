@@ -37,7 +37,34 @@ else
             }
         </div>
     </div>
+    @if (pinnedPosts is not null && pinnedPosts!.Count > 0)
+    { 
+        <h3>Pinned Posts</h3>
+        <div class="news-grid">
 
+            @foreach (var post in pinnedPosts!)
+            {
+                <div class="news-card">
+                    <a href="/article/@post.PostId/@post.PostShortTitle">
+                        <img class="news-card-image" src="@post.HeaderImage" alt="@post.PostTitle">
+                    </a>
+                    <div class="news-card-body">
+                        <a href="/article/@post.PostId/@post.PostShortTitle">
+                            <h5>@post.PostTitle</h5>
+                        </a>
+                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h tt")</p>
+                        <div class="post-stats">
+                            <img class="icon views-icon" src="/images/views.jpg" alt="Views" style="width: 16px; height: 16px;">
+                            <span>@post.PageViews</span>
+                            <img class="icon comments-icon" src="/images/comments.jpg" alt="Comments" style="width: 16px; height: 16px;">
+                            <span>@post.TotalComments</span>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
      <div class="filter-container">
     <h3>Trending Posts</h3>
     <form method="get" id="trending-form">
@@ -66,24 +93,13 @@ else
                   @* <button type="submit" class="btn-submit">Update</button>   *@
     </form>
 </div> 
+    
+    
 
     @if (trendingPosts != null)
     {
         <div class="news-grid">
-           @*  @foreach (var post in trendingPosts)
-            {
-                <div class="news-card">
-                    <a href="/article/@post.PostId/@post.PostShortTitle">
-                        <img src="@post.HeaderImage" alt="@post.PostTitle">
-                    </a>
-                    <div class="news-card-body">
-                        <a href="/article/@post.PostId/@post.PostShortTitle">
-                            <h5>@post.PostTitle</h5>
-                        </a>
-                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h:mm tt")</p>
-                    </div>
-                </div>
-            } *@
+
             @foreach (var post in trendingPosts)
             {
                 <div class="news-card">
@@ -132,21 +148,6 @@ else
     {
         <div class="news-grid">
 
-          @*   @foreach (var post in recentPosts)
-            {
-                <div class="news-card">
-                    <a href="/article/@post.PostId/@post.PostShortTitle">
-                        <img src="@post.HeaderImage" alt="@post.PostTitle">
-                    </a>
-                    <div class="news-card-body">
-                        <a href="/article/@post.PostId/@post.PostShortTitle">
-                            <h5>@post.PostTitle</h5>
-                        </a>
-                        <p>@post.PostSysDate?.ToString("dddd MM-dd-yyyy h tt")</p>
-                    </div>
-                </div>
-            } *@
-
             @foreach (var post in recentPosts)
             {
                 <div class="news-card">
@@ -175,6 +176,7 @@ else
     private bool isLoading = true;
     private List<Post>? recentPosts;
     private List<Post>? trendingPosts;
+    private List<Post>? pinnedPosts;
     private List<Category>? categories;
     public string? TrendingPostSelectionDayAmount { get; set; }
     public string? TrendingPostSelectionNumberAmount { get; set; }
@@ -195,6 +197,8 @@ else
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         await ClientInfoService.LogUserActivity();
+
+        pinnedPosts = await PostService.GetPinnedPosts();
 
         //get the category id from query string (if there is one)
         if (query.TryGetValue("category", out var categoryValue))

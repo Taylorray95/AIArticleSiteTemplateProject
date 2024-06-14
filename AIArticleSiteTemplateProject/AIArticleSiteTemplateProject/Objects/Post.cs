@@ -30,5 +30,9 @@ namespace AIArticleSiteTemplateProject.Objects
         public int StatusId { get; set; }
         [ForeignKey("StatusId")]
         public PostStatus? PostStatus { get; set; }
+
+        public bool? IsPinnedPost { get; set; } = false;
+        
+        public int? PinnedPostPosition { get; set; } 
     }
 }

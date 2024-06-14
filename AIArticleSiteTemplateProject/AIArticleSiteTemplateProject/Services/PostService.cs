@@ -30,6 +30,13 @@ namespace AIArticleSiteTemplateProject.Services
             return post!;
         }
 
+        public async Task<List<Post>> GetPinnedPosts()
+        {
+            return await _context.Posts
+                                 .Where(p => p.IsPinnedPost == true) 
+                                 .OrderByDescending(p => p.PostSysDate) 
+                                 .ToListAsync();
+        }
 
 
         public async Task<List<Comment>> GetCommentsByPostId(int postId)

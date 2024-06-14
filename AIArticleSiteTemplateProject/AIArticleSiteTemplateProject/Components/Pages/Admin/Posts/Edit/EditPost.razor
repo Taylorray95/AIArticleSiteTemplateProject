@@ -181,6 +181,15 @@
             <InputText id="pageViews" class="form-control" @bind-Value="pageViewsText"  />
         </div>
 
+        <div class="form-group">
+            <label for="postPinned">Is Post Pinned?:</label>
+            <InputSelect id="isPostPinned" class="form-control" @bind-Value="isPinnedPostString" @onchange="OnPinnedPostChanged">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </InputSelect>
+        </div>
+
+       
 
         <h3>Articles Parsed</h3>
         @foreach (var articleParsed in articlesParsed)
@@ -222,6 +231,8 @@ else
     private string image3Option = "link";
     private string image4Option = "link";
 
+    private string isPinnedPostString = "false";
+
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
@@ -243,7 +254,9 @@ else
             bodyImageOption = post.BodyImageIsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
             image3Option = post.Image3IsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
             image4Option = post.Image4IsExternalLinkFlag.GetValueOrDefault() ? "link" : "upload";
+            isPinnedPostString = post.IsPinnedPost.HasValue && post.IsPinnedPost.Value ? "true" : "false";
         }
+
         else
         {
             NavigationManager.NavigateTo("/admin/");
@@ -266,6 +279,15 @@ else
         articlesParsed.Remove(articleParsed);
     }
 
+    private void OnPinnedPostChanged(ChangeEventArgs e)
+    {
+        if (post != null)
+        {
+            isPinnedPostString = e.Value?.ToString() ?? "false";
+            post.IsPinnedPost = isPinnedPostString == "true";
+        }
+    }
+
     private async Task HandleValidSubmit()
     {
         if (post != null)
@@ -279,6 +301,8 @@ else
                 post.PageViews = string.IsNullOrWhiteSpace(pageViewsText)
                                  ? (int?)null
                                  : int.Parse(pageViewsText);
+
+                post.IsPinnedPost = isPinnedPostString == "true";
 
                 DbContext.Posts.Update(post);
                 await DbContext.SaveChangesAsync();
@@ -351,6 +375,10 @@ else
             {
                 // Delete the image from the CDN
                 await cdnServerManager.DeleteImageAsync("PostImagesFolder", imageIdValue.ToString());
+            }
+            else
+            {
+                return;    
             }
 
             post.GetType().GetProperty(isLinkFlagField).SetValue(post, true);

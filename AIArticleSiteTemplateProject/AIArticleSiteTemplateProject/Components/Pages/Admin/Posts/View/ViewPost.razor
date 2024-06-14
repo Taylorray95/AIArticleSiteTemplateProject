@@ -26,7 +26,8 @@
         <strong>Image 4:</strong> @post.Image4 <br />
         <strong>Total Comments:</strong>@post.TotalComments <br />
         <strong>PageViews:</strong>@post.PageViews <br />
-        <strong></strong>
+        <strong>IsPinnedPost: </strong>@(post.IsPinnedPost ?? false )<br />
+        <strong>PinnedPostPosition: </strong> @(post.PinnedPostPosition ?? 0) <br />
 
         <h3>Articles Parsed</h3>
         <ul>
